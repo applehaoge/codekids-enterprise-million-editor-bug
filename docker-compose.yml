@@ -1,0 +1,121 @@
+version: '3.9'
+
+services:
+  redis:
+    image: redis:7
+    ports:
+      - "6379:6379"
+    volumes:
+      - ./redis/data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - codekids-net
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - codekids-net
+
+  mongodb:
+    image: mongo
+    ports:
+      - "27017:27017"
+    volumes:
+      - ./mongodb/data:/data/db
+    networks:
+      - codekids-net
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: codekids123
+      MYSQL_DATABASE: codekids
+      MYSQL_USER: codekids_user
+      MYSQL_PASSWORD: codekids123
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+    networks:
+      - codekids-net
+
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: admin
+      MINIO_ROOT_PASSWORD: admin123
+    command: server /data --console-address ":9001"
+    volumes:
+      - ./minio/data:/data
+    networks:
+      - codekids-net
+
+  frontend:
+    build: ./frontend
+    ports:
+      - "8888:3000"
+    networks:
+      - codekids-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000"]
+      interval: 30s
+      retries: 5
+
+  java-backend:
+    build: ./java-backend
+    ports:
+      - "8081:8080"
+    networks:
+      - codekids-net
+    restart: unless-stopped
+    healthcheck:
+      test: [ "CMD", "curl", "-f", "http://localhost:8080/actuator/health" ]
+      interval: 30s
+      retries: 5
+
+
+  python-backend:
+    build: ./python-backend
+    ports:
+      - "5000:5000"
+    networks:
+      - codekids-net
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:5000/health"]
+      interval: 30s
+      retries: 5
+
+  ai-service:
+    build: ./ai-service
+    ports:
+      - "8000:8000"
+    networks:
+      - codekids-net
+    restart: unless-stopped
+
+  nginx:
+    image: nginx:latest
+    ports:
+      - "8080:80"
+    volumes:
+      - ./nginx-gateway/nginx.conf:/etc/nginx/nginx.conf
+      - ./nginx-gateway/conf.d/codekids.conf:/etc/nginx/conf.d/codekids.conf
+    networks:
+      - codekids-net
+    restart: unless-stopped
+
+networks:
+  codekids-net:
+    driver: bridge
+
+volumes:
+  mysql-data:
+

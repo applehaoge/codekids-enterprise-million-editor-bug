@@ -1,0 +1,9 @@
+docker load -i D:\codekids-enterprise-million-v2\openjdk17.tar
+docker load -i D:\codekids-enterprise-million-v2\node20.tar
+docker load -i D:\codekids-enterprise-million-v2\python310.tar
+docker-compose up -d
+docker run -d -p 5001:5000 --name myregistry --restart unless-stopped registry:2
+
+
+密码：
+-e MYSQL_ROOT_PASSWORD=codekids123

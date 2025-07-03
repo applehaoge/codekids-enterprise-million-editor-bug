@@ -1,0 +1,7 @@
+
+# Java WebSocket中转服务
+FROM openjdk:17
+WORKDIR /app
+COPY ./java-backend/target/app.jar ./app.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "app.jar"]

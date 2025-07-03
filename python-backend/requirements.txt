@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+flask
+flask-socketio
+celery
+redis
+pymongo
+pygame
+pillow

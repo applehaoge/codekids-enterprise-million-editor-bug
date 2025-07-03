@@ -1,0 +1,78 @@
+
+version: "3.9"
+services:
+  java-backend:
+    build: ./java-backend
+    ports:
+      - "8080:8080"
+    depends_on:
+      - redis
+      - rabbitmq
+    networks:
+      - backend
+
+  python-backend:
+    build: ./python-backend
+    ports:
+      - "5000:5000"
+    depends_on:
+      - redis
+      - rabbitmq
+    networks:
+      - backend
+
+  ai-service:
+    build: ./ai-service
+    ports:
+      - "8000:8000"
+    networks:
+      - backend
+
+  redis:
+    image: redis:6
+    ports:
+      - "6379:6379"
+    networks:
+      - backend
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    networks:
+      - backend
+
+  mongodb:
+    image: mongo
+    ports:
+      - "27017:27017"
+    networks:
+      - backend
+
+  mysql:
+    image: mysql
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: password
+    networks:
+      - backend
+
+  minio:
+    image: minio/minio
+    ports:
+      - "9000:9000"
+    command: server /data
+    networks:
+      - backend
+
+  nginx:
+    image: nginx
+    ports:
+      - "80:80"
+    networks:
+      - backend
+
+networks:
+  backend:

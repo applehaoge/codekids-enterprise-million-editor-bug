@@ -1,0 +1,18 @@
+# 忽略数据库运行数据
+mysql/data/
+mongodb/data/
+*.sock
+
+# 忽略打包文件
+*.tar
+*.zip
+
+# 忽略 IDE 配置
+.idea/
+.vscode/
+
+# 忽略临时文件
+~$*
+*.tmp
+*.log
+.DS_Store

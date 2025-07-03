@@ -1,0 +1,9 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: codekids-config
+data:
+  VITE_API_BASE_URL: "http://codekids.local/api/"
+  VITE_PY_BASE_URL: "http://codekids.local/py/"
+  VITE_AI_BASE_URL: "http://codekids.local/ai/"
+  APP_ENV: "production"

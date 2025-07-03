@@ -1,0 +1,3 @@
+com\codekids\ApiController.class
+com\codekids\JavaBackendApplication.class
+com\codekids\rabbit\TaskMessageProducer.class

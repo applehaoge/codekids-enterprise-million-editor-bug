@@ -1,0 +1,116 @@
+// D:\桌面文件\130684486146.main\130684486146\src\components\editor\TeachingPanel.tsx
+import { motion } from 'framer-motion';
+import { useState, useRef, useEffect } from 'react';
+
+interface TeachingPanelProps {
+  /** 直接传完整的 Data URL；没有时可以省略 */
+  imageData?: string;
+}
+
+
+export default function TeachingPanel({ imageData }: TeachingPanelProps) {
+  const [isFullscreen, setIsFullscreen] = useState(false);
+
+  const toggleFullscreen = () => {
+    setIsFullscreen(!isFullscreen);
+  };
+
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+
+  useEffect(() => {
+    if (!imageData) return;
+
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+
+    const ctx = canvas.getContext("2d");
+    const img = new Image();
+    img.src = imageData;
+
+    img.onload = () => {
+      ctx?.clearRect(0, 0, canvas.width, canvas.height);
+      ctx?.drawImage(img, 0, 0, canvas.width, canvas.height);
+    };
+  }, [imageData]);
+
+
+  return (
+    <motion.div 
+      className={`rounded-xl bg-white shadow-lg overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50' : 'h-full flex flex-col'}`}
+      style={{ overflow: 'hidden' }}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: 'spring', stiffness: 100 }}
+    >
+      <div className="p-4 border-b flex justify-between items-center">
+        <h3 className="text-xl font-bold text-blue-800">运行结果</h3>
+        <div className="flex gap-2">
+          <motion.button
+            className="w-10 h-10 rounded-full bg-red-500 text-white flex items-center justify-center"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <i className="fa-solid fa-pause"></i>
+          </motion.button>
+          <motion.button
+            className="w-10 h-10 rounded-full bg-green-500 text-white flex items-center justify-center"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <i className="fa-solid fa-play"></i>
+          </motion.button>
+          <motion.button
+            className="w-10 h-10 rounded-full bg-yellow-500 text-white flex items-center justify-center"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+          >
+            <i className="fa-solid fa-gauge-high"></i>
+          </motion.button>
+          <motion.button
+            className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center"
+            whileHover={{ scale: 1.1 }}
+            whileTap={{ scale: 0.9 }}
+            onClick={toggleFullscreen}
+          >
+            <i className={`fa-solid ${isFullscreen ? 'fa-minimize' : 'fa-maximize'}`}></i>
+          </motion.button>
+        </div>
+      </div>
+      
+      {/* 运行结果区域 */}
+      <div className={`relative ${isFullscreen ? 'h-[calc(100vh-80px)]' : 'flex-1 bg-gradient-to-b from-blue-50 to-purple-50 min-h-[300px]'}`}>
+        <div className="absolute inset-0 p-4">
+          <div className="relative w-full h-full">
+            <div className="absolute inset-0 bg-white rounded-lg shadow-inner" style={{ overflow: 'hidden' }}>
+              <canvas
+                ref={canvasRef}
+                width={400}
+                height={300}
+                className="w-full h-auto mx-auto block rounded shadow"
+              />
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      {/* 角色背景更换区 - 全屏时隐藏 */}
+      {!isFullscreen && (
+        <div className="p-3 border-t">
+          <h4 className="text-sm font-bold mb-2 text-blue-800">角色和背景</h4>
+          <div className="flex gap-2 justify-center">
+            {[1, 2, 3].map((item) => (
+              <motion.div
+                key={item}
+                className="border border-purple-300 rounded p-1 cursor-pointer hover:shadow-sm"
+                whileHover={{ scale: 1.02 }}
+              >
+                <div className="w-10 h-10 bg-blue-100 rounded"></div>
+                <p className="text-xs text-center mt-1">角色 {item}</p>
+              </motion.div>
+            ))}
+          </div>
+        </div>
+      )}
+    </motion.div>
+  );
+}

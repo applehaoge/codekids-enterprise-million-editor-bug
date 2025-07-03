@@ -1,0 +1,8 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: codekids-config
+data:
+  SPRING_PROFILES_ACTIVE: "default"
+  PYTHON_ENV: "production"
+  AI_MODE: "china"
