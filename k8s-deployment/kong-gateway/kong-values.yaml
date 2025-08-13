@@ -1,0 +1,8 @@
+ingressController:
+  installCRDs: false
+proxy:
+  type: NodePort
+  http:
+    enabled: true
+  tls:
+    enabled: false
