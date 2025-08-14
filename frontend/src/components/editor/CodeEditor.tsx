@@ -4,6 +4,7 @@ import { toast } from 'sonner';
 import { codeExamples, codeCompletions } from '@/data/editorMock';
 import AITools from '@/components/editor/AITools';
 import ProgrammingHelper from '@/components/editor/ProgrammingHelper';
+import MonacoCodeEditor from '@/components/editor/MonacoCodeEditor';
 import { coursesAPI } from '@/api/courses';
 
 // 显示
@@ -264,29 +265,22 @@ export default function CodeEditor({
         {/* 代码编辑区 */}
         <div className="relative" style={{ height: isFullscreen ? 'calc(100vh - 80px)' : 'calc(100% - 40px)' }}>
           <div className="relative h-full" onClick={() => setShowSaveOptions(false)}>
-            <textarea
-              className="w-full h-full p-4 font-mono text-blue-900 bg-gradient-to-b from-blue-50 to-purple-50 overflow-y-auto"
-              value={code}
-              onChange={(e) => {
-                const newCode = e.target.value;
+            <MonacoCodeEditor
+              code={code}
+              onChange={(newCode) => {
                 setCode(newCode);
-
-                // 获取当前光标位置
-                const cursorPos = e.target.selectionStart;
-                const textBeforeCursor = newCode.substring(0, cursorPos);
-                const lines = textBeforeCursor.split('\n');
-                const currentLine = lines[lines.length - 1] || '';
-
-                // 获取当前正在输入的单词
-                const words = currentLine.split(/\s+/);
-                const currentWord = words[words.length - 1] || '';
-
-                // 严格触发条件：必须是字母开头且长度大于0
-                const shouldShow = /^[a-zA-Z]/.test(currentWord) && currentWord.length > 0;
-                setShowSuggestions(shouldShow);
+                // 保存到本地存储
+                localStorage.setItem('savedCode', newCode);
               }}
-              onFocus={() => {}}
-              spellCheck="false"
+              language="python"
+              theme="vs-dark"
+              onError={(error) => {
+                setConsoleOutput((p) => p + '\n[错误] ' + error);
+              }}
+              onSave={() => {
+                localStorage.setItem('savedCode', code);
+                toast.success('代码已保存到本地');
+              }}
             />
           </div>
         </div>

@@ -1,0 +1,80 @@
+{
+  "mcpServers": {
+    "@smithery-ai-server-sequential-thinking": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@smithery-ai/server-sequential-thinking",
+        "--config",
+        "{}"
+      ]
+    },
+    "@smithery-ai-fetch": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@smithery-ai/fetch",
+        "--config",
+        "{}"
+      ]
+    },
+    "files": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@modelcontextprotocol/server-filesystem",
+        "."
+      ]
+    },
+    "@wopal-mcp-server-hotnews": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@wopal/mcp-server-hotnews"
+      ]
+    },
+    "playwright": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@executeautomation/playwright-mcp-server"
+      ]
+    },
+    "hn-server": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@pskill9/hn-server"
+      ]
+    },
+    "duckduckgo-mcp-server": {
+      "command": "cmd",
+      "args": [
+        "/c",
+        "npx",
+        "-y",
+        "@smithery/cli@latest",
+        "run",
+        "@nickclyde/duckduckgo-mcp-server"
+      ]
+    }
+  }
+}
