@@ -95,6 +95,52 @@ export default function MonacoCodeEditor({
     setChineseSymbols([]);
   };
 
+  // 点击替换单个中文符号
+  const replaceSingleSymbol = (symbol: string, line: number, column: number) => {
+    const chineseSymbolMap: { [key: string]: string } = {
+      '，': ',',
+      '。': '.',
+      '；': ';',
+      '：': ':',
+      '！': '!',
+      '？': '?',
+      '（': '(',
+      '）': ')',
+      '【': '[',
+      '】': ']',
+      '"': '"',
+      '"': '"',
+      ''': "'",
+      ''': "'",
+    };
+
+    const replacement = chineseSymbolMap[symbol];
+    if (!replacement) return;
+
+    // 获取当前代码
+    const currentCode = editorRef.current?.getValue() || code;
+    const lines = currentCode.split('\n');
+    
+    // 替换指定位置的符号
+    if (lines[line - 1]) {
+      const lineContent = lines[line - 1];
+      const newLineContent = lineContent.substring(0, column - 1) + replacement + lineContent.substring(column);
+      lines[line - 1] = newLineContent;
+      
+      const newCode = lines.join('\n');
+      onChange(newCode);
+      
+      // 更新光标位置
+      if (editorRef.current) {
+        const position = { lineNumber: line, column: column };
+        editorRef.current.setPosition(position);
+        editorRef.current.focus();
+      }
+      
+      toast.success(`已将 "${symbol}" 替换为 "${replacement}"`);
+    }
+  };
+
   // 编辑器配置
   const editorOptions = {
     readOnly,
@@ -192,7 +238,7 @@ export default function MonacoCodeEditor({
         <motion.div
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="absolute top-2 right-2 z-10 bg-yellow-100 border border-yellow-300 rounded-lg p-3 shadow-lg"
+          className="absolute top-2 right-2 z-10 bg-yellow-100 border border-yellow-300 rounded-lg p-3 shadow-lg max-w-xs"
         >
           <div className="flex items-center gap-2 mb-2">
             <span className="text-yellow-800 font-medium">检测到中文符号</span>
@@ -200,11 +246,14 @@ export default function MonacoCodeEditor({
               onClick={fixChineseSymbols}
               className="px-3 py-1 bg-yellow-500 text-white rounded text-sm hover:bg-yellow-600 transition-colors"
             >
-              一键修复
+              一键修复全部
             </button>
           </div>
-          <div className="text-sm text-yellow-700">
+          <div className="text-sm text-yellow-700 mb-2">
             发现 {chineseSymbols.length} 个中文符号，建议修复为英文符号
+          </div>
+          <div className="text-xs text-yellow-600">
+            💡 点击下方红色符号可单独替换
           </div>
         </motion.div>
       )}
@@ -225,13 +274,32 @@ export default function MonacoCodeEditor({
         }
       />
 
+      {/* 中文符号列表 */}
+      {chineseSymbols.length > 0 && (
+        <div className="absolute bottom-2 left-2 z-10 bg-red-100 border border-red-300 rounded-lg p-3 max-w-xs max-h-32 overflow-y-auto">
+          <div className="text-red-800 font-medium text-sm mb-2">中文符号列表：</div>
+          <div className="flex flex-wrap gap-1">
+            {chineseSymbols.map((symbolInfo, index) => (
+              <button
+                key={index}
+                onClick={() => replaceSingleSymbol(symbolInfo.symbol, symbolInfo.line, symbolInfo.column)}
+                className="px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600 transition-colors cursor-pointer"
+                title={`第${symbolInfo.line}行第${symbolInfo.column}列: ${symbolInfo.symbol}`}
+              >
+                {symbolInfo.symbol}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* 状态栏 */}
       <div className="bg-gray-800 text-gray-300 px-4 py-2 text-sm flex items-center justify-between">
         <div className="flex items-center gap-4">
           <span>语言: {language}</span>
           <span>主题: {theme}</span>
           {chineseSymbols.length > 0 && (
-            <span className="text-yellow-400">
+            <span className="text-red-400 font-medium">
               中文符号: {chineseSymbols.length}
             </span>
           )}
