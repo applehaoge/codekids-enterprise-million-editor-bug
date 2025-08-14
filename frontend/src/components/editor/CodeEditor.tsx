@@ -4,7 +4,7 @@ import { toast } from 'sonner';
 import { codeExamples, codeCompletions } from '@/data/editorMock';
 import AITools from '@/components/editor/AITools';
 import ProgrammingHelper from '@/components/editor/ProgrammingHelper';
-import MonacoCodeEditor from '@/components/editor/MonacoCodeEditor';
+import SimpleChineseDetector from '@/components/editor/SimpleChineseDetector';
 import { coursesAPI } from '@/api/courses';
 
 // 显示
@@ -265,21 +265,12 @@ export default function CodeEditor({
         {/* 代码编辑区 */}
         <div className="relative" style={{ height: isFullscreen ? 'calc(100vh - 80px)' : 'calc(100% - 40px)' }}>
           <div className="relative h-full" onClick={() => setShowSaveOptions(false)}>
-            <MonacoCodeEditor
+            <SimpleChineseDetector
               code={code}
               onChange={(newCode) => {
                 setCode(newCode);
                 // 保存到本地存储
                 localStorage.setItem('savedCode', newCode);
-              }}
-              language="python"
-              theme="vs-dark"
-              onError={(error) => {
-                setConsoleOutput((p) => p + '\n[错误] ' + error);
-              }}
-              onSave={() => {
-                localStorage.setItem('savedCode', code);
-                toast.success('代码已保存到本地');
               }}
             />
           </div>
