@@ -21,143 +21,150 @@ export default function MonacoCodeEditor({
 	readOnly = false,
 }: MonacoCodeEditorProps) {
 	const editorRef = useRef<any>(null);
-	const [isEditorReady, setIsEditorReady] = useState<boolean>(false);
-	const [testResult, setTestResult] = useState<string>('等待测试...');
+	const monacoRef = useRef<any>(null);
+	const [decorations, setDecorations] = useState<string[]>([]);
 
-	// 测试基本功能
-	const testBasicFeatures = () => {
-		console.log('🧪 开始测试基本功能...');
-		setTestResult('测试中...');
-		
-		if (!editorRef.current) {
-			const msg = '❌ Editor 引用为空';
-			console.log(msg);
-			setTestResult(msg);
-			return;
-		}
-
-		try {
-			// 测试 1: 获取值
-			const value = editorRef.current.getValue();
-			console.log('✅ 获取值成功:', value.substring(0, 50));
-			
-			// 测试 2: 获取模型
-			const model = editorRef.current.getModel();
-			if (model) {
-				console.log('✅ 获取模型成功:', model.uri.toString());
-			} else {
-				console.log('❌ 获取模型失败');
-			}
-			
-			// 测试 3: 设置值
-			editorRef.current.setValue('print("Hello from test!")');
-			console.log('✅ 设置值成功');
-			
-			// 测试 4: 获取选项
-			const readOnlyOption = editorRef.current.getOption('readOnly');
-			console.log('✅ 获取选项成功:', readOnlyOption);
-			
-			setTestResult('✅ 基本功能测试通过');
-			
-		} catch (error) {
-			const msg = `❌ 测试失败: ${error}`;
-			console.error(msg);
-			setTestResult(msg);
-		}
+	// 中文符号映射
+	const chineseSymbols: Record<string, string> = {
+		'，': ',',
+		'。': '.',
+		'；': ';',
+		'：': ':',
+		'！': '!',
+		'？': '?',
+		'（': '(',
+		'）': ')',
+		'【': '[',
+		'】': ']',
+		'"': '"',
+		'"': '"',
+		''': "'",
+		''': "'",
 	};
 
-	// 测试装饰器功能
-	const testDecorations = () => {
-		console.log('🎨 开始测试装饰器功能...');
+	// 检测中文符号
+	const detectChineseSymbols = (text: string) => {
+		const symbols: Array<{ line: number; column: number; symbol: string }> = [];
+		const lines = text.split('\n');
 		
-		if (!editorRef.current) {
-			console.log('❌ Editor 引用为空');
-			return;
-		}
-
-		try {
-			// 注入样式
-			const styleId = 'monaco-test-style';
-			if (!document.getElementById(styleId)) {
-				const style = document.createElement('style');
-				style.id = styleId;
-				style.textContent = `
-					.monaco-test-decoration {
-						background-color: #ff0000 !important;
-						color: white !important;
-					}
-				`;
-				document.head.appendChild(style);
-				console.log('✅ 样式注入成功');
-			}
-
-			// 尝试添加装饰器
-			const decorations = editorRef.current.deltaDecorations([], [{
-				range: { startLineNumber: 1, startColumn: 1, endLineNumber: 1, endColumn: 20 },
-				options: {
-					inlineClassName: 'monaco-test-decoration',
-					hoverMessage: { value: '这是测试装饰器' }
+		lines.forEach((line, lineIndex) => {
+			line.split('').forEach((char, charIndex) => {
+				if (chineseSymbols[char]) {
+					symbols.push({
+						line: lineIndex + 1,
+						column: charIndex + 1,
+						symbol: char,
+					});
 				}
-			}]);
-			
-			console.log('✅ 装饰器应用成功:', decorations);
-			setTestResult('✅ 装饰器测试通过');
-			
-		} catch (error) {
-			const msg = `❌ 装饰器测试失败: ${error}`;
-			console.error(msg);
-			setTestResult(msg);
-		}
+			});
+		});
+		
+		return symbols;
 	};
 
+	// 应用装饰器
+	const applyDecorations = (symbols: Array<{ line: number; column: number; symbol: string }>) => {
+		if (!editorRef.current || !monacoRef.current) return;
+
+		const editor = editorRef.current;
+		const monaco = monacoRef.current;
+
+		// 清除现有装饰器
+		if (decorations.length > 0) {
+			editor.deltaDecorations(decorations, []);
+		}
+
+		// 创建新的装饰器
+		const newDecorations = symbols.map(({ line, column, symbol }) => ({
+			range: new monaco.Range(line, column, line, column + 1),
+			options: {
+				inlineClassName: 'chinese-symbol-highlight',
+				hoverMessage: { value: `点击替换为: ${chineseSymbols[symbol]}` },
+			},
+		}));
+
+		// 应用装饰器
+		const appliedDecorations = editor.deltaDecorations([], newDecorations);
+		setDecorations(appliedDecorations);
+	};
+
+	// 编辑器挂载
 	const handleEditorDidMount = (editor: any, monaco: any) => {
-		console.log('🚀 Monaco Editor 挂载成功');
-		console.log('📚 Monaco 对象:', monaco);
-		console.log('🔧 Editor 实例:', editor);
-		
 		editorRef.current = editor;
-		setIsEditorReady(true);
-		
-		// 延迟测试
-		setTimeout(() => {
-			testBasicFeatures();
-			setTimeout(testDecorations, 1000);
-		}, 500);
+		monacoRef.current = monaco;
+
+		// 保存快捷键
+		editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
+			onSave?.();
+		});
+
+		// 监听内容变化
+		editor.onDidChangeModelContent(() => {
+			const value = editor.getValue();
+			const symbols = detectChineseSymbols(value);
+			applyDecorations(symbols);
+			onChange(value);
+		});
+
+		// 监听鼠标点击
+		editor.onMouseDown((e: any) => {
+			if (!e.target.position) return;
+			
+			const { lineNumber, column } = e.target.position;
+			const symbols = detectChineseSymbols(editor.getValue());
+			const hitSymbol = symbols.find(s => s.line === lineNumber && s.column === column);
+			
+			if (hitSymbol) {
+				const replacement = chineseSymbols[hitSymbol.symbol];
+				if (replacement) {
+					editor.executeEdits('replace-chinese-symbol', [{
+						range: new monaco.Range(lineNumber, column, lineNumber, column + 1),
+						text: replacement,
+					}]);
+				}
+			}
+		});
+
+		// 初始检测
+		const initialSymbols = detectChineseSymbols(code);
+		applyDecorations(initialSymbols);
 	};
 
 	const handleEditorChange = (value?: string) => {
 		if (value === undefined) return;
-		console.log('📝 编辑器内容变化:', value.substring(0, 50));
 		onChange(value);
 	};
 
+	// 注入CSS样式
 	useEffect(() => {
-		console.log('🔄 组件挂载，编辑器状态:', isEditorReady);
-	}, [isEditorReady]);
+		const styleId = 'chinese-symbol-styles';
+		if (!document.getElementById(styleId)) {
+			const style = document.createElement('style');
+			style.id = styleId;
+			style.textContent = `
+				.chinese-symbol-highlight {
+					background-color: rgba(255, 0, 0, 0.3) !important;
+					border-bottom: 2px solid #ff0000 !important;
+					cursor: pointer !important;
+				}
+				.chinese-symbol-highlight:hover {
+					background-color: rgba(255, 0, 0, 0.5) !important;
+				}
+			`;
+			document.head.appendChild(style);
+		}
+	}, []);
+
+	// 外部代码变化时重新检测
+	useEffect(() => {
+		if (editorRef.current) {
+			const symbols = detectChineseSymbols(code);
+			applyDecorations(symbols);
+		}
+	}, [code]);
 
 	return (
 		<div className="relative w-full h-full">
-			{/* 调试面板 */}
-			<div className="absolute top-2 left-2 z-20 bg-blue-100 border border-blue-300 rounded p-3 text-xs max-w-xs">
-				<div className="font-bold mb-2">Monaco Editor 测试</div>
-				<div>状态: {isEditorReady ? '✅ 已就绪' : '⏳ 加载中'}</div>
-				<div className="mt-2 text-xs break-words">{testResult}</div>
-				<div className="mt-2 flex gap-1">
-					<button 
-						onClick={testBasicFeatures}
-						className="px-2 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600"
-					>
-						测试基本功能
-					</button>
-					<button 
-						onClick={testDecorations}
-						className="px-2 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600"
-					>
-						测试装饰器
-					</button>
-				</div>
-			</div>
-
 			<Editor
 				height="100%"
 				language={language}
