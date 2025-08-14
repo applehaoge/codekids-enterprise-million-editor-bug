@@ -20,6 +20,8 @@ export default function MonacoCodeEditor({
 	onSave,
 	readOnly = false,
 }: MonacoCodeEditorProps) {
+	console.log('🔍 MonacoCodeEditor component is rendering with code:', code.substring(0, 50));
+	
 	const editorRef = useRef<any>(null);
 	const monacoRef = useRef<any>(null);
 	const [decorations, setDecorations] = useState<string[]>([]);
