@@ -78,8 +78,10 @@ export default function MonacoCodeEditor({
 		const editor = editorRef.current;
 		const monaco = monacoRef.current;
 		if (!editor || !monaco) return;
+		
 		const model = editor.getModel();
 		if (!model) return;
+		
 		const newDecos = items.map((it) => ({
 			range: new monaco.Range(it.line, it.column, it.line, it.column + 1),
 			options: {
@@ -87,6 +89,7 @@ export default function MonacoCodeEditor({
 				hoverMessage: { value: `点击替换为 ${CHINESE_TO_ASCII[it.symbol]}` },
 			},
 		}));
+		
 		const applied = editor.deltaDecorations(decorations, newDecos);
 		setDecorations(applied);
 	}

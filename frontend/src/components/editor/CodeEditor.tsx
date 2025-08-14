@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import MonacoCodeEditor from './MonacoCodeEditor';
 import { codeExamples, codeCompletions } from '@/data/editorMock';
 import AITools from '@/components/editor/AITools';
 import ProgrammingHelper from '@/components/editor/ProgrammingHelper';
@@ -265,12 +266,21 @@ export default function CodeEditor({
         {/* 代码编辑区 */}
         <div className="relative" style={{ height: isFullscreen ? 'calc(100vh - 80px)' : 'calc(100% - 40px)' }}>
           <div className="relative h-full" onClick={() => setShowSaveOptions(false)}>
-            <SimpleChineseDetector
+            <MonacoCodeEditor
               code={code}
               onChange={(newCode) => {
                 setCode(newCode);
                 // 保存到本地存储
                 localStorage.setItem('savedCode', newCode);
+              }}
+              language="python"
+              theme="vs-dark"
+              onError={(error) => {
+                setConsoleOutput((p) => p + '\n[错误] ' + error);
+              }}
+              onSave={() => {
+                localStorage.setItem('savedCode', code);
+                toast.success('代码已保存到本地');
               }}
             />
           </div>
