@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useRef, useEffect, useState } from 'react';
 import Editor from '@monaco-editor/react';
 
 interface MonacoCodeEditorProps {
@@ -62,37 +62,51 @@ export default function MonacoCodeEditor({
 		return symbols;
 	};
 
-	// 应用装饰器
+	// 应用装饰器 - 基于官方API
 	const applyDecorations = (symbols: Array<{ line: number; column: number; symbol: string }>) => {
-		if (!editorRef.current || !monacoRef.current) return;
+		if (!editorRef.current || !monacoRef.current) {
+			console.log('❌ Editor or Monaco not ready');
+			return;
+		}
 
 		const editor = editorRef.current;
 		const monaco = monacoRef.current;
 
-		// 清除现有装饰器
-		if (decorations.length > 0) {
-			editor.deltaDecorations(decorations, []);
+		try {
+			// 清除现有装饰器
+			if (decorations.length > 0) {
+				editor.deltaDecorations(decorations, []);
+			}
+
+			// 创建新的装饰器 - 使用官方Range对象
+			const newDecorations = symbols.map(({ line, column, symbol }) => ({
+				range: new monaco.Range(line, column, line, column + 1),
+				options: {
+					inlineClassName: 'chinese-symbol-highlight',
+					hoverMessage: { value: `点击替换为: ${chineseSymbols[symbol]}` },
+				},
+			}));
+
+			// 应用装饰器 - 使用官方deltaDecorations方法
+			const appliedDecorations = editor.deltaDecorations([], newDecorations);
+			setDecorations(appliedDecorations);
+			
+			console.log(`✅ Applied ${symbols.length} decorations:`, appliedDecorations);
+			
+		} catch (error) {
+			console.error('❌ Error applying decorations:', error);
 		}
-
-		// 创建新的装饰器
-		const newDecorations = symbols.map(({ line, column, symbol }) => ({
-			range: new monaco.Range(line, column, line, column + 1),
-			options: {
-				inlineClassName: 'chinese-symbol-highlight',
-				hoverMessage: { value: `点击替换为: ${chineseSymbols[symbol]}` },
-			},
-		}));
-
-		// 应用装饰器
-		const appliedDecorations = editor.deltaDecorations([], newDecorations);
-		setDecorations(appliedDecorations);
 	};
 
-	// 编辑器挂载
+	// 编辑器挂载 - 基于官方示例
 	const handleEditorDidMount = (editor: any, monaco: any) => {
+		console.log('🚀 Monaco Editor mounted successfully');
+		console.log('Editor instance:', editor);
+		console.log('Monaco object:', monaco);
+		
 		editorRef.current = editor;
 		monacoRef.current = monaco;
-
+		
 		// 保存快捷键
 		editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
 			onSave?.();
@@ -117,6 +131,7 @@ export default function MonacoCodeEditor({
 			if (hitSymbol) {
 				const replacement = chineseSymbols[hitSymbol.symbol];
 				if (replacement) {
+					// 使用官方executeEdits方法
 					editor.executeEdits('replace-chinese-symbol', [{
 						range: new monaco.Range(lineNumber, column, lineNumber, column + 1),
 						text: replacement,
@@ -152,6 +167,7 @@ export default function MonacoCodeEditor({
 				}
 			`;
 			document.head.appendChild(style);
+			console.log('✅ Chinese symbol styles injected');
 		}
 	}, []);
 
@@ -165,6 +181,13 @@ export default function MonacoCodeEditor({
 
 	return (
 		<div className="relative w-full h-full">
+			{/* 调试信息 */}
+			<div className="absolute top-2 left-2 z-20 bg-blue-100 border border-blue-300 rounded p-2 text-xs">
+				<div>Monaco Editor - 中文符号检测</div>
+				<div>装饰器数量: {decorations.length}</div>
+				<div>检查控制台日志</div>
+			</div>
+
 			<Editor
 				height="100%"
 				language={language}
