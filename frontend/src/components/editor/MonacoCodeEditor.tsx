@@ -221,6 +221,9 @@ export default function MonacoCodeEditor({
         }
       });
     }
+
+    // 初始检测
+    detectChineseSymbols(code);
   };
 
   // 处理代码变化
@@ -230,6 +233,13 @@ export default function MonacoCodeEditor({
       detectChineseSymbols(value);
     }
   };
+
+  // 监听 code 变化，重新检测
+  useEffect(() => {
+    if (isEditorReady) {
+      detectChineseSymbols(code);
+    }
+  }, [code, isEditorReady]);
 
   return (
     <div className="relative w-full h-full">

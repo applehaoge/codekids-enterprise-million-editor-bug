@@ -285,78 +285,7 @@ export default function CodeEditor({
           </div>
         </div>
 
-        {/* 代码补全建议 */}
-        {showSuggestions && (
-          <div className="absolute left-4 top-16 bg-white shadow-lg rounded-lg z-50 w-64 max-h-96 overflow-y-auto">
-            {codeCompletions
-              .map(category => ({
-                ...category,
-                items: category.items.filter(item => {
-                  // 获取当前光标位置
-                  const textarea = document.querySelector('textarea');
-                  if (!textarea) return false;
-
-                  const cursorPos = textarea.selectionStart;
-                  const textBeforeCursor = code.substring(0, cursorPos);
-                  const lines = textBeforeCursor.split('\n');
-                  const currentLine = lines[lines.length - 1] || '';
-
-                  // 获取当前正在输入的单词
-                  const words = currentLine.split(/\s+/);
-                  const currentWord = words[words.length - 1] || '';
-
-                  // 当编辑器为空或当前单词为空，显示基础建议
-                  if (!currentWord.trim()) {
-                    return true;
-                  }
-
-                  // 严格匹配：必须是字母开头且当前单词是补全项的前缀
-                  return /^[a-zA-Z]/.test(currentWord) && 
-                         item.keyword.toLowerCase().startsWith(currentWord.toLowerCase());
-                })
-              }))
-              .filter(category => category.items.length > 0)
-              .map((category, catIndex) => (
-                <div key={catIndex} className="border-b border-gray-200 last:border-b-0">
-                  <div className="px-3 py-2 bg-blue-50 text-blue-800 font-bold">
-                    {category.category}
-                  </div>
-                  {category.items.map((item, itemIndex) => (
-                    <div 
-                      key={itemIndex}
-                      className="px-3 py-2 hover:bg-blue-100 cursor-pointer"
-                      onClick={() => {
-                        const textarea = document.querySelector('textarea');
-                        if (!textarea) return;
-
-                        const cursorPos = textarea.selectionStart;
-                        const textBeforeCursor = code.substring(0, cursorPos);
-                        const textAfterCursor = code.substring(cursorPos);
-
-                        // 找到当前单词的起始位置 - 改进多行处理
-                        let wordStart = cursorPos;
-                        while (wordStart > 0) {
-                          const prevChar = textBeforeCursor[wordStart - 1];
-                          if (!/[a-zA-Z]/.test(prevChar)) break;
-                          wordStart--;
-                        }
-
-                        // 确保不会跨行替换
-                        const lineStart = textBeforeCursor.lastIndexOf('\n', cursorPos) + 1;
-                        wordStart = Math.max(wordStart, lineStart);
-
-                        // 构建新代码：替换当前单词
-                        const newCode = 
-                          textBeforeCursor.substring(0, wordStart) + 
-                          item.keyword + 
-                          textAfterCursor;
-                          
-                        setCode(newCode);
-                        setShowSuggestions(false);
-
-                        // 设置光标位置到插入内容之后
-                        setTimeout(() => {
-                          textarea.setSelectionRange(
+        {/* 代码补全建议 - 已由 Monaco Editor 内置补全功能替代 */}
                             wordStart + item.keyword.length,
                             wordStart + item.keyword.length
                           );
