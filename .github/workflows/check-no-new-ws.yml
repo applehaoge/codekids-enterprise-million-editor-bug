@@ -1,0 +1,17 @@
+name: Check no new WebSocket
+
+on: [pull_request, push]
+
+jobs:
+  check-no-new-ws:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install pnpm
+        run: npm i -g pnpm
+      - name: Run check-no-new-ws
+        run: pnpm --prefix frontend run check-no-new-ws

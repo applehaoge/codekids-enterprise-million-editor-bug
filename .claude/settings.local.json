@@ -64,7 +64,23 @@
       "Bash(rg \"WebSocketConfig|EchoHandler\" -n ./)",
       "Bash(docker exec codekids-enterprise-million-v2-java-backend-1 sh -lc \"unzip -l /app/codekids-backend.jar | rg -n ''WebSocketConfig|EchoHandler'' || true\")",
       "WebFetch(domain:docs.anthropic.com)",
-      "Bash(docker-compose up -d)"
+      "Bash(docker-compose up -d)",
+      "Bash(curl -v -sS http://localhost:5173/ -o /dev/null)",
+      "Bash(curl -sS -v http://localhost:8081/actuator/health -o /dev/null)",
+      "Bash(curl -v -sS http://localhost:5000/health -o /dev/null)",
+      "Bash(docker compose build frontend)",
+      "Bash(docker images --format '{{.Repository}}:{{.Tag}}\\t{{.ID}}\\t{{.CreatedSince}}' node:20 nginx:1.21-alpine)",
+      "Bash(docker images --format '{{.Repository}}:{{.Tag}}\\t{{.ID}}\\t{{.CreatedSince}}' node nginx)",
+      "Bash(docker images --format '{{.Repository}}:{{.Tag}}\\t{{.ID}}\\t{{.CreatedSince}}')",
+      "Bash(docker compose build --pull=false frontend)",
+      "Bash(docker compose up -d)",
+      "Bash(curl -sS -o /dev/null -w '%{http_code}\\n' http://localhost:5173)",
+      "Bash(curl -v -sS http://localhost:8888/ -o /tmp/frontend_index.html)",
+      "Bash(docker logs --tail 200 codekids-enterprise-million-v2-frontend-1)",
+      "Bash(docker ps --filter \"name=frontend\" --format \"{{.Names}}\\t{{.Status}}\\t{{.Ports}}\")",
+      "Bash(docker compose up -d frontend)",
+      "Bash(pnpm --prefix frontend run check-no-new-ws)",
+      "Bash(git add -A)"
     ],
     "defaultMode": "acceptEdits"
   }

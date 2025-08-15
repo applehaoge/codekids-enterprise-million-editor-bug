@@ -62,82 +62,29 @@ export default function CodeEditor({
       wsRef.current = null;
     }
 
-    const wsUrl = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${import.meta.env.VITE_WS_HOST || 'localhost'}:${import.meta.env.VITE_WS_PORT || 5000}${import.meta.env.VITE_WS_PATH || '/ws'}`;
-    console.log('连接的 WS 地址（来自 ENV）:', wsUrl);
-    const ws = new WebSocket(wsUrl);
-    wsRef.current = ws;
+      import('../../wsClient').then(wsClient=>{
+      wsClient.connect().then(()=>{
+        wsClient.on('run_result', (data)=>{
+          setConsoleOutput((p) => p + '\n' + data)
+        })
+      })
+    })
 
-    ws.onopen = () => {
-      console.log('✅ WebSocket 已连接');
-      setConsoleOutput((p) => p + '\n[提示] WebSocket 已连接');
-    };
+    // 发送逻辑保持不变，改为使用 wsClient.send
+    
 
-    ws.onmessage = (e) => {
-      console.log('📩 收到消息:', e.data);
-      let msg: any = {};
-      try {
-        msg = JSON.parse(e.data as string);
-      } catch (error) {
-        console.error('消息解析失败:', error);
-        setConsoleOutput((p) => p + '\n' + e.data);
-        return;
-      }
-
-      if (msg.status === 'success') {
-        if (msg.data) {
-          setConsoleOutput((p) => p + '\n' + msg.data);
-        }
-        if (msg.image) {
-          setImageData(msg.image);
-        }
-      } else if (msg.status === 'error') {
-        setConsoleOutput((p) => p + '\n[错误] ' + msg.data);
-      }
-    };
-
-    ws.onclose = () => {
-      console.log('❌ WebSocket 已关闭');
-      setConsoleOutput((p) => p + '\n[提示] WebSocket 已关闭');
-      wsRef.current = null;
-    };
-
-    ws.onerror = (err) => {
-      console.error('🚫 WebSocket 出错:', err);
-      setConsoleOutput((p) => p + '\n[错误] WebSocket 出错');
-      wsRef.current = null;
-    };
   };
 
   // ✅ 点击【运行】按钮
   const handleRunWS = () => {
     setShowConsole(true);
 
-    if (!wsRef.current || wsRef.current.readyState !== WebSocket.OPEN) {
-      connectWebSocket();
-
-      const waitAndSend = setInterval(() => {
-        if (wsRef.current && wsRef.current.readyState === WebSocket.OPEN) {
-          wsRef.current.send(
-            JSON.stringify({
-              mode: 'raw',
-              hidden_code: '',
-              student_code: code,
-            })
-          );
-          setConsoleOutput((p) => p + '\n[提示] 已发送运行指令');
-          clearInterval(waitAndSend);
-        }
-      }, 200);
-    } else {
-      wsRef.current.send(
-        JSON.stringify({
-          mode: 'raw',
-          hidden_code: '',
-          student_code: code,
-        })
-      );
-      setConsoleOutput((p) => p + '\n[提示] 已发送运行指令');
-    }
+    import('../../wsClient').then(wsClient=>{
+      wsClient.connect().then(()=>{
+        wsClient.send('run', { mode: 'raw', hidden_code: '', student_code: code })
+        setConsoleOutput((p) => p + '\n[提示] 已发送运行指令')
+      })
+    })
   };
 
   // ✅ 全屏切换功能

@@ -7,8 +7,9 @@ RUN pnpm install && pnpm build:client
 
 
 # 部署阶段
-FROM nginx:1.21-alpine
-COPY --from=builder /app/dist/static /usr/share/nginx/html
-COPY ./nginx.conf /etc/nginx/nginx.conf
-EXPOSE 80
-CMD ["nginx", "-g", "daemon off;"]
+FROM node:20
+WORKDIR /app
+COPY --from=builder /app .
+RUN corepack enable && corepack prepare pnpm@latest --activate
+EXPOSE 5173
+CMD ["pnpm", "dev", "--host", "0.0.0.0", "--port", "5173"]

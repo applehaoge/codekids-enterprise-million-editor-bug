@@ -66,6 +66,10 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 - Java 应用入口: java-backend/src/main/java/com/codekids/JavaBackendApplication.java:9
 - 前端主要入口: frontend/src/main.tsx:1
+
+IMPORTANT: 禁止在组件中直接使用 new WebSocket()，应使用 frontend/src/wsClient.js 提供的接口 connect/send/on/close。
+
+IMPORTANT: 禁止在组件中直接使用 new WebSocket()，请将 VITE_WS_URL 配置到 frontend/.env，并使用 wsClient 接口。
 - Docker 配置与服务定义: docker-compose.yml:1
 - 仓库根 README 包含端口与服务映射: README.md:4
 

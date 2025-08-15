@@ -21,8 +21,7 @@ export default function Editor() {
   const [crystalCount, setCrystalCount] = useState(125);
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  /* WebSocket 只建一次，用 ref 保存 */
-  const socketRef = useRef<WebSocket | null>(null);
+  /* 使用全局 WS 客户端 */
 
   /* 初次进入时生成演示圆形图 */
   useEffect(() => {
@@ -39,22 +38,18 @@ export default function Editor() {
     }
   }, []);
 
-  /* 建立 WebSocket 连接（只建立一次） */
+  /* 使用全局 WS 客户端 */
   useEffect(() => {
-    const wsUrl = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${import.meta.env.VITE_WS_HOST || 'localhost'}:${import.meta.env.VITE_WS_PORT || 5000}${import.meta.env.VITE_WS_PATH || '/ws'}`;
-    console.log('连接的 WS 地址（来自 ENV）:', wsUrl);
-    const ws = new WebSocket(wsUrl); // 走 Java 中转
-    socketRef.current = ws;
-
-    ws.onopen = () => console.log('✅ WebSocket 连接已建立');
-    ws.onerror = (e) => console.error('WebSocket 错误：', e);
-    ws.onclose = () => console.log('WebSocket 连接已关闭');
-    ws.onmessage = (e) => {
-      console.log('收到执行结果：', e.data);
-      setConsoleOutput(e.data);
-    };
-
-    return () => ws.close();
+    let mounted = true
+    import('../wsClient').then(wsClient => {
+      wsClient.connect().then(()=>{
+        if(!mounted) return
+        const off = wsClient.on('run_result', (data)=>{
+          setConsoleOutput(data)
+        })
+      }).catch(e=>console.error('WS connect failed', e))
+    })
+    return () => { mounted = false }
   }, []);
 
   /* 首次进入 & 读取本地存储 */

@@ -1,0 +1,15 @@
+{
+  "root": true,
+  "env": { "browser": true, "es2021": true },
+  "extends": ["eslint:recommended"],
+  "parserOptions": { "ecmaVersion": 2021, "sourceType": "module" },
+  "rules": {
+    "no-restricted-syntax": [
+      "error",
+      {
+        "selector": "NewExpression[callee.name='WebSocket']",
+        "message": "禁止直接 new WebSocket()。必须使用 frontend/src/wsClient.js 提供的接口，并从 .env 中读取 VITE_WS_URL。"
+      }
+    ]
+  }
+}
