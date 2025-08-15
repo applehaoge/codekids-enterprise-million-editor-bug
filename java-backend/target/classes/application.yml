@@ -1,6 +1,6 @@
 server:
   servlet:
-    context-path: /  # 确保这一行没有错误
+    context-path: /api
 
 spring:
   datasource:

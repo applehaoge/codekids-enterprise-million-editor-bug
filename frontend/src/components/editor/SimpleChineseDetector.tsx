@@ -23,10 +23,10 @@ export default function SimpleChineseDetector({ code, onChange }: SimpleChineseD
       '）': ')',
       '【': '[',
       '】': ']',
-      '"': '"',
-      '"': '"',
-      ''': "'",
-      ''': "'",
+      '“': '"',
+      '”': '"',
+      '‘': "'",
+      '’': "'",
     };
 
     const symbols: Array<{line: number, column: number, symbol: string}> = [];
@@ -65,10 +65,10 @@ export default function SimpleChineseDetector({ code, onChange }: SimpleChineseD
       '）': ')',
       '【': '[',
       '】': ']',
-      '"': '"',
-      '"': '"',
-      ''': "'",
-      ''': "'",
+      '“': '"',
+      '”': '"',
+      '‘': "'",
+      '’': "'",
     };
 
     let fixedCode = code;
@@ -96,10 +96,10 @@ export default function SimpleChineseDetector({ code, onChange }: SimpleChineseD
       '）': ')',
       '【': '[',
       '】': ']',
-      '"': '"',
-      '"': '"',
-      ''': "'",
-      ''': "'",
+      '“': '"',
+      '”': '"',
+      '‘': "'",
+      '’': "'",
     };
 
     const replacement = chineseSymbolMap[symbol];

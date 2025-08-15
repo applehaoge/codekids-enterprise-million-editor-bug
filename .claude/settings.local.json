@@ -81,7 +81,22 @@
       "Bash(docker compose up -d frontend)",
       "Bash(pnpm --prefix frontend run check-no-new-ws)",
       "Bash(git add -A)",
-      "Bash(node frontend/frontend-scripts/check-no-new-ws.js)"
+      "Bash(node frontend/frontend-scripts/check-no-new-ws.js)",
+      "Bash(pnpm --prefix frontend install --silent)",
+      "Bash(mvn -f java-backend spring-boot:run)",
+      "Bash(docker ps --filter \"name=mysql\" --format \"{{.Names}}\\t{{.Status}}\\t{{.Ports}}\")",
+      "Bash(curl -sS -o /dev/null -w '%{http_code}\\n' http://localhost:8081/actuator/health)",
+      "Bash(docker ps --filter \"name=java-backend\" --format \"{{.Names}}\\t{{.Status}}\\t{{.Ports}}\")",
+      "Bash(docker logs --tail 200 codekids-enterprise-million-v2-java-backend-1)",
+      "Bash(curl -sS -o /dev/null -w '%{http_code}\\n' http://localhost:8081/api/actuator/health)",
+      "Bash(curl -sS -N -v http://localhost:5173/ -o /tmp/front.html)",
+      "Bash(rg \"import.meta.env.VITE_WS_URL|VITE_WS_URL|VITE_WS_PATH\" frontend -n)",
+      "Bash(pnpm --prefix frontend dlx eslint \"frontend/src/**/*.{ts,tsx}\" --ext .ts,.tsx)",
+      "Bash(pnpm --prefix frontend dlx eslint \"frontend/src/**/*.{ts,tsx}\" --max-warnings=0)",
+      "Bash(pnpm --prefix frontend dlx eslint \"frontend/src/**/*.{ts,tsx}\" --config frontend/.eslintrc.json --max-warnings=0)",
+      "Bash(pnpm --prefix frontend dlx eslint \"frontend/src/**/*.{ts,tsx}\" --max-warnings=0 --config frontend/eslint.config.cjs)",
+      "Bash(pnpm --prefix frontend dlx eslint frontend/src --max-warnings=0 --config frontend/eslint.config.cjs --ext .ts,.tsx)",
+      "Bash(pnpm --prefix frontend dlx eslint frontend/src --ext .ts,.tsx --max-warnings=0 --config frontend/eslint.config.cjs)"
     ],
     "defaultMode": "acceptEdits"
   }
