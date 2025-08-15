@@ -58,7 +58,7 @@ export default function Editor() {
   };
 
   /* WebSocket 连接和消息发送 */
-  const socket = new WebSocket("ws://localhost:5000");  // 后端 WebSocket 地址
+  const socket = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${import.meta.env.VITE_WS_HOST || 'localhost'}:${import.meta.env.VITE_WS_PORT || 5000}${import.meta.env.VITE_WS_PATH || '/ws'}`);  // 后端 WebSocket 地址
 
   // WebSocket 连接成功
   socket.onopen = function(event) {

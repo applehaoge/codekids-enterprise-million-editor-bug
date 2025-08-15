@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Monaco Editor 中文符号检测测试</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        .content {
+            padding: 20px;
+        }
+        #container {
+            width: 100%;
+            height: 500px;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+        }
+        .controls {
+            margin: 20px 0;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        button {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 4px;
+            background: #667eea;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        button:hover {
+            background: #5a6fd8;
+        }
+        .status {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 4px;
+            margin: 20px 0;
+            border-left: 4px solid #667eea;
+        }
+        .log {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            max-height: 200px;
+            overflow-y: auto;
+            margin: 20px 0;
+        }
+        .chinese-symbol-highlight {
+            background-color: rgba(255, 0, 0, 0.3) !important;
+            border-bottom: 2px solid #ff0000 !important;
+            cursor: pointer !important;
+        }
+        .chinese-symbol-highlight:hover {
+            background-color: rgba(255, 0, 0, 0.5) !important;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Monaco Editor 中文符号检测测试</h1>
+            <p>基于官方 Monaco Editor API 的中文符号高亮和点击替换功能</p>
+        </div>
+        
+        <div class="content">
+            <div class="status">
+                <h3>测试说明</h3>
+                <p>1. 在编辑器中输入包含中文符号的代码（如：print（"Hello，World！"））</p>
+                <p>2. 中文符号应该显示红色高亮</p>
+                <p>3. 点击红色高亮位置应该自动替换为英文符号</p>
+            </div>
+            
+            <div class="controls">
+                <button onclick="testDecorations()">测试装饰器</button>
+                <button onclick="addChineseSymbols()">添加中文符号测试</button>
+                <button onclick="clearLog()">清空日志</button>
+            </div>
+            
+            <div id="container"></div>
+            
+            <div class="log" id="log"></div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/monaco-editor@0.52.2/min/vs/loader.js"></script>
+    <script>
+        let myEditor;
+        let decorations = [];
+        
+        // 中文符号映射
+        const chineseSymbols = {
+            '，': ',', '。': '.', '；': ';', '：': ':', '！': '!', '？': '?',
+            '（': '(', '）': ')', '【': '[', '】': ']', '"': '"', '"': '"',
+            '\u2018': "'", '\u2019': "'"
+        };
+        
+        function log(message) {
+            const logElement = document.getElementById('log');
+            const timestamp = new Date().toLocaleTimeString();
+            logElement.innerHTML += `[${timestamp}] ${message}\n`;
+            logElement.scrollTop = logElement.scrollHeight;
+            console.log(message);
+        }
+        
+        function clearLog() {
+            document.getElementById('log').innerHTML = '';
+        }
+        
+        // 检测中文符号
+        function detectChineseSymbols(text) {
+            const symbols = [];
+            const lines = text.split('\n');
+            
+            lines.forEach((line, lineIndex) => {
+                line.split('').forEach((char, charIndex) => {
+                    if (chineseSymbols[char]) {
+                        symbols.push({
+                            line: lineIndex + 1,
+                            column: charIndex + 1,
+                            symbol: char
+                        });
+                    }
+                });
+            });
+            
+            return symbols;
+        }
+        
+        // 应用装饰器
+        function applyDecorations(symbols) {
+            if (!myEditor) {
+                log('❌ Editor not ready');
+                return;
+            }
+            
+            try {
+                // 清除现有装饰器
+                if (decorations.length > 0) {
+                    myEditor.deltaDecorations(decorations, []);
+                    decorations = [];
+                }
+                
+                // 创建新的装饰器
+                const newDecorations = symbols.map(({ line, column, symbol }) => ({
+                    range: new monaco.Range(line, column, line, column + 1),
+                    options: {
+                        inlineClassName: 'chinese-symbol-highlight',
+                        hoverMessage: { value: `点击替换为: ${chineseSymbols[symbol]}` }
+                    }
+                }));
+                
+                // 应用装饰器
+                decorations = myEditor.deltaDecorations([], newDecorations);
+                log(`✅ Applied ${symbols.length} decorations: ${decorations.join(', ')}`);
+                
+            } catch (error) {
+                log(`❌ Error applying decorations: ${error}`);
+            }
+        }
+        
+        // 测试装饰器功能
+        function testDecorations() {
+            log('🧪 Testing decorations...');
+            const value = myEditor.getValue();
+            const symbols = detectChineseSymbols(value);
+            log(`🔍 Found ${symbols.length} Chinese symbols: ${symbols.map(s => s.symbol).join(', ')}`);
+            applyDecorations(symbols);
+        }
+        
+        // 添加中文符号测试
+        function addChineseSymbols() {
+            const testCode = `print（"Hello，World！"）
+if（条件）：
+    print（"测试"）
+# 这是一个测试，包含中文符号：；：！？【】""''`;
+            
+            myEditor.setValue(testCode);
+            log('📝 Added test code with Chinese symbols');
+            
+            // 自动检测并应用装饰器
+            setTimeout(() => {
+                const symbols = detectChineseSymbols(testCode);
+                applyDecorations(symbols);
+            }, 100);
+        }
+        
+        // 初始化 Monaco Editor
+        require.config({ paths: { 'vs': 'https://unpkg.com/monaco-editor@0.52.2/min/vs' } });
+        
+        require(['vs/editor/editor.main'], function() {
+            log('🚀 Monaco Editor loaded successfully');
+            
+            const value = `print("Hello World")
+# 在这里输入包含中文符号的代码进行测试
+# 例如：print（"Hello，World！"）`;
+            
+            myEditor = monaco.editor.create(document.getElementById("container"), {
+                value: value,
+                language: "python",
+                theme: "vs-dark",
+                automaticLayout: true,
+                fontSize: 16,
+                minimap: { enabled: false },
+                wordWrap: 'on'
+            });
+            
+            log('✅ Editor created successfully');
+            
+            // 监听内容变化
+            myEditor.onDidChangeModelContent(() => {
+                const currentValue = myEditor.getValue();
+                const symbols = detectChineseSymbols(currentValue);
+                if (symbols.length > 0) {
+                    log(`📝 Content changed, detected ${symbols.length} Chinese symbols`);
+                    applyDecorations(symbols);
+                }
+            });
+            
+            // 监听鼠标点击
+            myEditor.onMouseDown((e) => {
+                if (!e.target.position) return;
+                
+                const { lineNumber, column } = e.target.position;
+                const symbols = detectChineseSymbols(myEditor.getValue());
+                const hitSymbol = symbols.find(s => s.line === lineNumber && s.column === column);
+                
+                if (hitSymbol) {
+                    const replacement = chineseSymbols[hitSymbol.symbol];
+                    if (replacement) {
+                        log(`🖱️ Clicked on Chinese symbol "${hitSymbol.symbol}", replacing with "${replacement}"`);
+                        
+                        // 执行编辑操作
+                        myEditor.executeEdits('replace-chinese-symbol', [{
+                            range: new monaco.Range(lineNumber, column, lineNumber, column + 1),
+                            text: replacement
+                        }]);
+                    }
+                }
+            });
+            
+            // 初始检测
+            const initialSymbols = detectChineseSymbols(value);
+            if (initialSymbols.length > 0) {
+                log(`🔍 Initial detection: ${initialSymbols.length} Chinese symbols found`);
+                applyDecorations(initialSymbols);
+            }
+            
+            log('🎯 Editor ready for testing!');
+        });
+    </script>
+</body>
+</html>

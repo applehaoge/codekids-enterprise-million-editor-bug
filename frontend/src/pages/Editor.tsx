@@ -41,7 +41,9 @@ export default function Editor() {
 
   /* 建立 WebSocket 连接（只建立一次） */
   useEffect(() => {
-    const ws = new WebSocket('ws://localhost:5000/ws'); // 走 Java 中转
+    const wsUrl = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${import.meta.env.VITE_WS_HOST || 'localhost'}:${import.meta.env.VITE_WS_PORT || 5000}${import.meta.env.VITE_WS_PATH || '/ws'}`;
+    console.log('连接的 WS 地址（来自 ENV）:', wsUrl);
+    const ws = new WebSocket(wsUrl); // 走 Java 中转
     socketRef.current = ws;
 
     ws.onopen = () => console.log('✅ WebSocket 连接已建立');

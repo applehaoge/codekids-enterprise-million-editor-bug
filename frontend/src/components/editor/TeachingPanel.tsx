@@ -38,9 +38,12 @@ export default function TeachingPanel({ imageData }: TeachingPanelProps) {
           const displayWidth = canvas.clientWidth;
           const displayHeight = canvas.clientHeight;
 
-          // ✅ 自动同步绘图尺寸以防变形
+          // ✅ 跳过非法尺寸以避免 NaN 等异常
+          if (Number.isNaN(displayWidth) || Number.isNaN(displayHeight) || displayWidth <= 0 || displayHeight <= 0) {
+            return;
+          }
+
           if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
-            console.log(`[⚠️ 尺寸不同步] 绘图: ${canvas.width}x${canvas.height} / 显示: ${displayWidth}x${displayHeight}`);
             canvas.width = displayWidth;
             canvas.height = displayHeight;
           }

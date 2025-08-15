@@ -1,3 +1,7 @@
 com\codekids\ApiController.class
+com\codekids\WebSocketConfig$EchoHandler.class
 com\codekids\JavaBackendApplication.class
+com\codekids\WebSocketConfig$1.class
+com\codekids\WebSocketConfig.class
 com\codekids\rabbit\TaskMessageProducer.class
+com\codekids\EchoHandler.class

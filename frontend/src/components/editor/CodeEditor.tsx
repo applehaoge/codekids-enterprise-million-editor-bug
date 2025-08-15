@@ -62,7 +62,9 @@ export default function CodeEditor({
       wsRef.current = null;
     }
 
-    const ws = new WebSocket('ws://localhost:5000/ws');
+    const wsUrl = `${location.protocol === 'https:' ? 'wss' : 'ws'}://${import.meta.env.VITE_WS_HOST || 'localhost'}:${import.meta.env.VITE_WS_PORT || 5000}${import.meta.env.VITE_WS_PATH || '/ws'}`;
+    console.log('连接的 WS 地址（来自 ENV）:', wsUrl);
+    const ws = new WebSocket(wsUrl);
     wsRef.current = ws;
 
     ws.onopen = () => {
@@ -148,6 +150,7 @@ export default function CodeEditor({
 
 
   return (
+    <>
     <div className="flex flex-col gap-2 h-full relative min-h-[350px]">
       <motion.div 
         className="rounded-xl shadow-lg overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50 relative flex-1"
@@ -285,42 +288,7 @@ export default function CodeEditor({
             />
           </div>
         </div>
-
-        {/* 代码补全建议 - 已由 Monaco Editor 内置补全功能替代 */}
-                            wordStart + item.keyword.length,
-                            wordStart + item.keyword.length
-                          );
-                          textarea.focus();
-                        }, 0);
-                      }}
-                    >
-                      <div className="flex items-center gap-2">
-                        <div className="font-mono text-blue-900">{item.keyword}</div>
-                        <div className="text-xs bg-blue-100 text-blue-800 px-1 rounded">
-                          {item.translation}
-                        </div>
-                        <button 
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            const utterance = new SpeechSynthesisUtterance(item.keyword);
-                            utterance.lang = 'en-US';
-                            speechSynthesis.speak(utterance);
-                          }}
-                          className="text-blue-500 hover:text-orange-500"
-                          title="朗读单词"
-                        >
-                          <i className="fa-solid fa-volume-high"></i>
-                        </button>
-                      </div>
-                      <div className="text-xs text-gray-600 mt-1">{item.description}</div>
-                    </div>
-                  ))}
-                </div>
-              ))
-            }
-          </div>
-        )}
-      </motion.div>
+      </motion.div>  {/* ← 补上最外层 motion.div 的闭合 */}
 
       {/* 控制台面板 */}
       <AnimatePresence>
@@ -413,5 +381,6 @@ export default function CodeEditor({
         )}
       </AnimatePresence>
     </div>
+  </>
   );
 }

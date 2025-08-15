@@ -1,0 +1,6 @@
+Changes made during WS setup:
+- Added java-backend/src/main/java/com/codekids/WebSocketConfig.java
+- Modified docker-compose.yml to use local image illion-v2-java-backend:local
+- Tagged existing image codekids-enterprise-million-v2-java-backend:latest -> illion-v2-java-backend:local
+- Updated frontend env and WebSocket client to use VITE_WS_HOST/PORT/PATH
+- Backups stored under frontend/.patches

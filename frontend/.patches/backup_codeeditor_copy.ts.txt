@@ -1,0 +1,4 @@
+// Backup of frontend/src/components/editor/CodeEditor - 副本.tsx
+// ... (original content before replacement)
+const ws = new WebSocket('ws://localhost:5000/ws');
+// ...

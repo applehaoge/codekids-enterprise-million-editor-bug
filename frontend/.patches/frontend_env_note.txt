@@ -1,0 +1,8 @@
+Ensure frontend .env has:
+VITE_WS_HOST=localhost
+VITE_WS_PORT=8081
+VITE_WS_PATH=/api/ws
+VITE_API_BASE_URL=http://localhost:8081/api
+
+Restart dev server: pnpm --prefix frontend dev:client
+Clear SW/Cache and hard refresh the browser to pick up new env variables.
