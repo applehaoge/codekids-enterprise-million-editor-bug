@@ -80,7 +80,8 @@
       "Bash(docker ps --filter \"name=frontend\" --format \"{{.Names}}\\t{{.Status}}\\t{{.Ports}}\")",
       "Bash(docker compose up -d frontend)",
       "Bash(pnpm --prefix frontend run check-no-new-ws)",
-      "Bash(git add -A)"
+      "Bash(git add -A)",
+      "Bash(node frontend/frontend-scripts/check-no-new-ws.js)"
     ],
     "defaultMode": "acceptEdits"
   }

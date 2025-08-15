@@ -61,22 +61,15 @@ export default function CodeEditor({
     setShowConsole(true);
     setConsoleOutput('正在连接 WebSocket ...');
 
-    // 创建新的 WebSocket 连接
-    const ws = new WebSocket(`${location.protocol === 'https:' ? 'wss' : 'ws'}://${import.meta.env.VITE_WS_HOST || 'localhost'}:${import.meta.env.VITE_WS_PORT || 5000}${import.meta.env.VITE_WS_PATH || '/ws'}`);
-    wsRef.current = ws;
+    // 使用统一 wsClient
+    import('../../wsClient').then(wsClient=>{
+      wsClient.connect().then(()=>{
+        wsClient.send('run', { mode: 'raw', hidden_code: '', student_code: code })
+        setConsoleOutput('连接成功，开始运行 ...');
+      })
+    })
 
-    // WebSocket 连接成功时
-    ws.onopen = () => {
-      console.log('WebSocket 连接成功');
-      setConsoleOutput('连接成功，开始运行 ...');
-      ws.send(JSON.stringify({ mode: 'raw', hidden_code: '', student_code: code }));
-    };
-
-    // WebSocket 消息接收
-    ws.onmessage = (e) => {
-      console.log('收到 WebSocket 消息：', e.data); // 增加调试输出
-      let msg: any = {};
-      try {
+    // WebSocket 消息接收由 wsClient 处理并通过事件分发      try {
         msg = JSON.parse(e.data as string);
       } catch (error) {
         console.error('消息解析失败：', error);  // 增加解析错误处理

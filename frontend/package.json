@@ -8,7 +8,7 @@
     "dev": "pnpm dev:client",
     "build:client": "vite build --outDir dist/static",
     "build": "rm -rf dist && pnpm build:client && cp package.json dist && touch dist/build.flag",
-    "check-no-new-ws": "bash -c \"if grep -R --line-number \"new WebSocket(\" frontend/src; then echo '禁止在组件中直接 new WebSocket()，请使用 frontend/src/wsClient.js'; exit 1; fi\""
+    "check-no-new-ws": "node ./frontend-scripts/check-no-new-ws.js"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
