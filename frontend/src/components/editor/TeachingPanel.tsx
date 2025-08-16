@@ -135,7 +135,7 @@ export default function TeachingPanel({ imageData }: TeachingPanelProps) {
               <canvas
                 ref={canvasRef}
                 className="w-full h-full mx-auto block rounded shadow"
-                style={{ display: 'block' }}
+                style={{ display: 'block', pointerEvents: 'none' }}
               />
             </div>
           </div>
