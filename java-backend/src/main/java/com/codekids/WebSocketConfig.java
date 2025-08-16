@@ -23,7 +23,20 @@ public class WebSocketConfig implements WebSocketConfigurer {
 
     private static class EchoHandler extends TextWebSocketHandler {
         @Override
+        public void afterConnectionEstablished(WebSocketSession session) throws Exception {
+            logger.info("WebSocket connection established: {}", session.getId());
+            super.afterConnectionEstablished(session);
+        }
+
+        @Override
+        public void afterConnectionClosed(WebSocketSession session, org.springframework.web.socket.CloseStatus status) throws Exception {
+            logger.info("WebSocket connection closed: {} with status: {}", session.getId(), status);
+            super.afterConnectionClosed(session, status);
+        }
+
+        @Override
         public void handleTextMessage(WebSocketSession session, TextMessage message) throws Exception {
+            logger.info("Received message from {}: {}", session.getId(), message.getPayload());
             session.sendMessage(new TextMessage(message.getPayload()));
         }
     }

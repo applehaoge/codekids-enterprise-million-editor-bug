@@ -13,21 +13,38 @@ export default function TeachingPanel({ imageData }: TeachingPanelProps) {
 
   const toggleFullscreen = () => setIsFullscreen(!isFullscreen);
 
-  // ✅ 接收后端发来的帧并入队（带前缀 FRAME:）
   useEffect(() => {
     if (imageData?.startsWith('data:image')) {
       frameQueue.current.push(imageData);
     }
   }, [imageData]);
 
-  // ✅ 渲染帧（用 requestAnimationFrame 替代 setInterval）
   useEffect(() => {
     let frameCount = 0;
     let lastSecond = Date.now();
+    let lastRenderTime = 0;
+    const targetFps = 30;
+    const minFrameInterval = 1000 / targetFps;
+    let running = true;
 
-    const drawFrame = () => {
+    const drawFrame = (time?: number) => {
+      if (!running) return;
       const canvas = canvasRef.current;
-      if (!canvas) return;
+      if (document.hidden || !canvas) {
+        animationRef.current = requestAnimationFrame(drawFrame);
+        return;
+      }
+
+      const editorFocused = !!(document.activeElement && (document.activeElement as HTMLElement).closest && (document.activeElement as HTMLElement).closest('.monaco-editor'));
+      const effectiveMinInterval = editorFocused ? 1000 / 2 : minFrameInterval;
+
+      const now = performance.now();
+      if (time === undefined) time = now;
+      if (now - lastRenderTime < effectiveMinInterval) {
+        animationRef.current = requestAnimationFrame(drawFrame);
+        return;
+      }
+      lastRenderTime = now;
 
       const ctx = canvas.getContext('2d');
       const next = frameQueue.current.shift();
@@ -37,37 +54,46 @@ export default function TeachingPanel({ imageData }: TeachingPanelProps) {
         img.onload = () => {
           const displayWidth = canvas.clientWidth;
           const displayHeight = canvas.clientHeight;
-
-          // ✅ 跳过非法尺寸以避免 NaN 等异常
           if (Number.isNaN(displayWidth) || Number.isNaN(displayHeight) || displayWidth <= 0 || displayHeight <= 0) {
             return;
           }
-
           if (canvas.width !== displayWidth || canvas.height !== displayHeight) {
             canvas.width = displayWidth;
             canvas.height = displayHeight;
           }
-
-          // ✅ 渲染图像
           ctx.clearRect(0, 0, canvas.width, canvas.height);
           ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
         };
       }
 
-      // ✅ 统计帧率
       frameCount++;
-      const now = Date.now();
-      if (now - lastSecond >= 1000) {
+      const nowMs = Date.now();
+      if (nowMs - lastSecond >= 1000) {
         console.log(`🟢 当前帧率：${frameCount} FPS`);
         frameCount = 0;
-        lastSecond = now;
+        lastSecond = nowMs;
       }
 
       animationRef.current = requestAnimationFrame(drawFrame);
     };
 
     animationRef.current = requestAnimationFrame(drawFrame);
-    return () => cancelAnimationFrame(animationRef.current!);
+
+    const handleVisibility = () => {
+      if (document.hidden) {
+        if (animationRef.current) cancelAnimationFrame(animationRef.current);
+        animationRef.current = undefined;
+      } else {
+        if (!animationRef.current) animationRef.current = requestAnimationFrame(drawFrame);
+      }
+    };
+
+    document.addEventListener('visibilitychange', handleVisibility);
+    return () => {
+      running = false;
+      if (animationRef.current) cancelAnimationFrame(animationRef.current);
+      document.removeEventListener('visibilitychange', handleVisibility);
+    };
   }, []);
 
 

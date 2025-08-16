@@ -123,7 +123,9 @@ export default function Editor() {
           {!isFullscreen && (
             <div className="w-full lg:w-4/12 flex flex-col min-w-0">
               <div className="h-full" style={{ overflow: 'hidden' }}>
-                <TeachingPanel output={consoleOutput} imageData={imageData} />
+                <div style={{ pointerEvents: 'none' }}>
+                  <TeachingPanel imageData={imageData} />
+                </div>
               </div>
             </div>
           )}

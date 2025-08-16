@@ -96,7 +96,9 @@
       "Bash(pnpm --prefix frontend dlx eslint \"frontend/src/**/*.{ts,tsx}\" --config frontend/.eslintrc.json --max-warnings=0)",
       "Bash(pnpm --prefix frontend dlx eslint \"frontend/src/**/*.{ts,tsx}\" --max-warnings=0 --config frontend/eslint.config.cjs)",
       "Bash(pnpm --prefix frontend dlx eslint frontend/src --max-warnings=0 --config frontend/eslint.config.cjs --ext .ts,.tsx)",
-      "Bash(pnpm --prefix frontend dlx eslint frontend/src --ext .ts,.tsx --max-warnings=0 --config frontend/eslint.config.cjs)"
+      "Bash(pnpm --prefix frontend dlx eslint frontend/src --ext .ts,.tsx --max-warnings=0 --config frontend/eslint.config.cjs)",
+      "Bash(pnpm --prefix frontend dev)",
+      "Bash(pnpm --prefix frontend exec eslint \"src/**/*.{ts,tsx,js,jsx}\" --max-warnings=0 --config frontend/.eslintrc.json)"
     ],
     "defaultMode": "acceptEdits"
   }

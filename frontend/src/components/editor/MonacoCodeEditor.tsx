@@ -22,7 +22,7 @@ export default function MonacoCodeEditor({
 }: MonacoCodeEditorProps) {
 	const editorRef = useRef<any>(null);
 
-	// 编辑器挂载 - 最简单的测试版本
+	// 编辑器挂载 - 最小化测试版本
 	const handleEditorDidMount = (editor: any, monaco: any) => {
 		console.log('🚀 Monaco Editor mounted successfully');
 		console.log('Editor instance:', editor);
@@ -55,7 +55,7 @@ export default function MonacoCodeEditor({
 		<div className="relative w-full h-full">
 			{/* 调试信息 */}
 			<div className="absolute top-2 left-2 z-20 bg-blue-100 border border-blue-300 rounded p-2 text-xs">
-				<div>Monaco Editor - 测试版本</div>
+				<div>Monaco Editor - 最小化测试版本</div>
 				<div>检查控制台日志</div>
 			</div>
 
@@ -67,11 +67,46 @@ export default function MonacoCodeEditor({
 				onChange={handleEditorChange}
 				onMount={handleEditorDidMount}
 				options={{
+					// 最小化配置 - 只保留最基本功能
 					readOnly,
-					minimap: { enabled: false },
 					fontSize: 16,
 					wordWrap: 'on',
 					automaticLayout: true,
+					
+					// 完全禁用可能导致SVG问题的功能
+					minimap: { enabled: false },
+					lineNumbers: 'on',
+					glyphMargin: false,
+					folding: false,
+					lineDecorationsWidth: 0,
+					
+					// 禁用所有装饰器和渲染功能
+					renderLineHighlight: 'none',
+					scrollBeyondLastLine: false,
+					renderValidationDecorations: 'off',
+					overviewRulerBorder: false,
+					hideCursorInOverviewRuler: true,
+					overviewRulerLanes: 0,
+					renderWhitespace: 'none',
+					renderControlCharacters: false,
+					renderLineHighlightOnlyWhenFocus: true,
+					
+					// 禁用高级功能
+					largeFileOptimizations: false,
+					maxTokenizationLineLength: 1000,
+					
+					// 禁用所有可能导致SVG的功能
+					contextmenu: false,
+					quickSuggestions: false,
+					suggestOnTriggerCharacters: false,
+					acceptSuggestionOnEnter: 'off',
+					tabCompletion: 'off',
+					wordBasedSuggestions: 'off',
+					parameterHints: { enabled: false },
+					hover: { enabled: false },
+					links: false,
+					colorDecorators: false,
+					// 暂时注释掉不兼容的配置
 				}}
 			/>
 		</div>

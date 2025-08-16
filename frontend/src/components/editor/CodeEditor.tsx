@@ -214,7 +214,7 @@ export default function CodeEditor({
         </div>
 
         {/* 代码编辑区 */}
-        <div className="relative" style={{ height: isFullscreen ? 'calc(100vh - 80px)' : 'calc(100% - 40px)' }}>
+        <div className="relative flex-1" style={{ minHeight: '400px', maxHeight: isFullscreen ? 'calc(100vh - 120px)' : '600px' }}>
           <div className="relative h-full" onClick={() => setShowSaveOptions(false)}>
             <MonacoCodeEditor
               code={code}
