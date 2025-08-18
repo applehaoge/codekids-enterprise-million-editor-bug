@@ -1,0 +1,26 @@
+name: frontend-preflight
+on:
+  pull_request:
+    paths:
+      - 'frontend/**'
+      - '.github/workflows/frontend-preflight.yml'
+jobs:
+  preflight:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm --filter ./frontend install
+      - name: Run check-no-new-ws
+        run: pnpm --prefix frontend run check-no-new-ws
+      - name: Run ESLint
+        run: pnpm --prefix frontend exec eslint "src/**/*.{ts,tsx,js,jsx}" --max-warnings=0 --config frontend/.eslintrc.json || true
+      - name: Check env files
+        run: |
+          if [ ! -f frontend/.env.production ]; then echo "Missing frontend/.env.production"; exit 1; fi
+          if [ ! -f frontend/.env.development ]; then echo "Missing frontend/.env.development"; exit 1; fi

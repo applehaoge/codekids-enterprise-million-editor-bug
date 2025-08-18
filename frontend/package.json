@@ -5,9 +5,9 @@
   "type": "module",
   "scripts": {
     "dev:client": "vite --port 5173",
-    "dev": "pnpm dev:client",
+    "dev": "node ./scripts/check-port.js && pnpm dev:client",
     "build:client": "vite build --outDir dist/static",
-    "build": "rm -rf dist && pnpm build:client && cp package.json dist && touch dist/build.flag",
+    "build": "node ./scripts/build_post.js",
     "check-no-new-ws": "node ./frontend-scripts/check-no-new-ws.js"
   },
   "dependencies": {
