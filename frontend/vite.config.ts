@@ -17,7 +17,21 @@ export default defineConfig({
     open: false,
     allowedHosts: ['all', 'codekids.local'],
     hmr: { protocol: 'ws', host: 'localhost', port: 5173 },
-    fs: { allow: ['.'] }
+    fs: { allow: ['.'] },
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8081',
+        changeOrigin: true,
+        secure: false
+      },
+      '/ws': {
+        target: 'http://localhost:8081',
+        changeOrigin: true,
+        secure: false,
+        ws: true,
+        rewrite: (path) => path.replace(/^\/ws/, '/api/ws')
+      }
+    }
   }
 });
 

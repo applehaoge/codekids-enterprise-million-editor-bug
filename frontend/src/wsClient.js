@@ -6,7 +6,10 @@ let heartbeatTimer = null
 export function connect(){
   return new Promise((resolve, reject) => {
     if(ws && ws.readyState === WebSocket.OPEN) return resolve()
-    const url = import.meta.env.VITE_WS_URL || `${location.protocol === 'https:' ? 'wss' : 'ws'}://${import.meta.env.VITE_WS_HOST || 'localhost'}:${import.meta.env.VITE_WS_PORT || 8081}${import.meta.env.VITE_WS_PATH || '/api/ws'}`
+    const defaultPath = import.meta.env.VITE_WS_PATH || '/ws'
+    const protocol = location.protocol === 'https:' ? 'wss' : 'ws'
+    const defaultUrl = `${protocol}://${location.host}${defaultPath}`
+    const url = import.meta.env.VITE_WS_URL || defaultUrl
     ws = new WebSocket(url)
     ws.onopen = () => {
       console.log('WS Connected')
