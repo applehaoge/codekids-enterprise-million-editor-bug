@@ -56,13 +56,14 @@ services:
 
   frontend:
     build: ./frontend
+    profiles: ['frontend']
     ports:
-      - "5173:5173"
+      - "8082:80"  # 改为8082端口，用于生产预览，开发期不看这个
     networks:
       - codekids-net
     restart: unless-stopped
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:5173"]
+      test: ["CMD", "curl", "-f", "http://localhost:80"]
       interval: 30s
       retries: 5
 
