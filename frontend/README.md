@@ -1,125 +1,34 @@
-# CodeKids - 儿童编程学习平台
+# CodeKids - 儿童编程学习平台（前端）
 
-## 项目结构
-```
-├── .env.example
-├── .gitignore
-├── README.md
-├── index.html
-├── package.json
-├── pnpm-lock.yaml
-├── postcss.config.js
-├── src
-│   ├── App.tsx
-│   ├── api
-│   │   ├── auth.ts        # 认证相关API
-│   │   ├── courses.ts     # 课程和代码执行API 
-│   │   └── index.ts       # API客户端配置
-│   ├── components
-│   │   ├── Carousel.tsx   # 首页轮播图
-│   │   ├── Empty.tsx
-│   │   ├── FeatureCards.tsx # 功能卡片
-│   │   ├── Footer.tsx
-│   │   ├── Header.tsx
-│   │   ├── Reward.tsx     # 奖励组件
-│   │   ├── Showcase.tsx   # 作品展示
-│   │   └── editor         # 编辑器相关组件
-│   │       ├── AITools.tsx      # AI工具
-│   │       ├── Character.tsx    # 角色组件
-│   │       ├── CodeEditor.tsx   # 代码编辑器
-│   │       ├── MotivationPanel.tsx # 激励面板
-│   │       ├── ProgrammingHelper.tsx # 编程助手
-│   │       ├── TeachingModal.tsx # 教学弹窗
-│   │       └── TeachingPanel.tsx # 教学面板
-│   ├── data
-│   │   ├── editorMock.ts  # 编辑器模拟数据
-│   │   ├── mock.ts        # 首页模拟数据
-│   │   ├── parentMock.ts  # 家长中心数据
-│   │   └── shopMock.ts    # 商城数据
-│   ├── hooks
-│   │   └── useTheme.ts    # 主题切换hook
-│   ├── index.css
-│   ├── lib
-│   │   └── utils.ts        # 工具函数
-│   ├── main.tsx
-│   ├── pages
-│   │   ├── Editor.tsx      # 编辑器页面
-│   │   ├── Home.tsx        # 首页
-│   │   ├── Parent.tsx      # 家长中心
-│   │   └── Shop.tsx        # 商城页面
-│   └── vite-env.d.ts
-├── tailwind.config.js
-├── tsconfig.json
-└── vite.config.ts
-```
+概述
+- 该目录为前端代码（React + TypeScript + Vite），负责编辑器、可视化运行面板、课程页与家长端展示。
 
-## API文件说明
+技术栈（MVP 推荐）
+- React + TypeScript + Vite
+- Tailwind CSS
+- 状态管理：Zustand
+- 编辑器：Monaco Editor
+- 动画：Framer Motion + Lottie
+- 媒体：ReactPlayer、PDF.js
+- 实时：原生 WebSocket（单业务通道）+ 自定义 Yjs Provider（topic=collab.*，灰度启用 y-websocket）
 
-### 1. auth.ts
-```typescript
-export const authAPI = {
-  login: (data: LoginParams) => apiClient.post('/auth/login', data),
-  register: (data: RegisterParams) => apiClient.post('/auth/register', data),
-  logout: () => apiClient.post('/auth/logout'),
-  getProfile: () => apiClient.get('/auth/profile'),
-};
-```
+快速启动
+- 安装依赖：pnpm install
+- 本地开发：pnpm dev
 
-### 2. courses.ts
-```typescript
-export const coursesAPI = {
-  getAll: () => apiClient.get('/courses'),
-  getById: (id: string) => apiClient.get(`/courses/${id}`),
-  create: (data: any) => apiClient.post('/courses', data),
-  update: (id: string, data: any) => apiClient.put(`/courses/${id}`, data),
-  delete: (id: string) => apiClient.delete(`/courses/${id}`),
-  getProgress: (id: string) => apiClient.get(`/courses/${id}/progress`),
-  saveCode: (id: string, code: string) => apiClient.post(`/courses/${id}/code`, { 
-    code,
-    timestamp: new Date().toISOString() 
-  }),
-  runCode: (code: string) => apiClient.post('/execute', { code }),
-};
-```
+API 客户端
+- baseURL 通过环境变量配置：VITE_API_BASE_URL
+- 主要 API 文件：src/api/index.ts（axios client），src/api/auth.ts，src/api/courses.ts（包含 runCode/saveCode/getProgress）
 
-### 3. index.ts
-```typescript
-const apiClient = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE_URL || 'http://localhost:3000/api',
-  timeout: 10000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
-});
+编辑器与可视化要点
+- 编辑器：MonacoCodeEditor（支持保存快捷键与 onChange 回调）
+- 可视化：按固定步长渲染，frame 流走 viz.frame（二进制），控制命令走 viz.ctrl，事件上行 viz.event，元数据 viz.meta
+- 帧编码（MVP）：关键帧 PNG + 差分（RLE/LZ4）
 
-// 配置请求和响应拦截器
-apiClient.interceptors.request.use(...);
-apiClient.interceptors.response.use(...);
-```
+安全与后端约定（简要）
+- 代码执行通过后端 /execute（或等价服务）并在隔离沙箱中运行（禁网、cgroups 限制、超时回收）
+- 存储：MinIO（对象）+ MongoDB（快照/元数据）+ MySQL（关系数据）
 
-## 主要功能模块
-
-### 1. 编辑器功能
-- 代码编辑与自动补全
-- 代码运行与结果展示
-- 代码保存到本地/云端
-- AI编程助手
-- 编程概念查询
-- 教学引导
-
-### 2. 学习功能
-- 课程展示
-- 学习进度跟踪
-- 奖励系统
-- 学习数据统计
-
-### 3. 家长中心
-- 学习时长统计
-- 课程完成情况
-- 使用时间控制
-- 通知设置
-
-### 4. 商城功能
-- 虚拟物品兑换
-- 学习资料购买
-- 交易记录查看
+开发注意
+- 前端仅保持单条业务 WS（除 HMR 外），如需协作可按 topic 协议复用同路连接
+- 所有变更请对齐后端路由与网关（Kong）配置
