@@ -3,15 +3,45 @@ import { useState, useRef, useEffect } from 'react';
 
 interface TeachingPanelProps {
   imageData?: string;
+  onFullscreenChange?: (isFullscreen: boolean) => void;
 }
 
-export default function TeachingPanel({ imageData }: TeachingPanelProps) {
-  const [isFullscreen, setIsFullscreen] = useState(false);
+export default function TeachingPanel({ imageData, onFullscreenChange }: TeachingPanelProps) {
+  const containerRef = useRef<HTMLDivElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const frameQueue = useRef<string[]>([]);
   const animationRef = useRef<number>();
+  const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const toggleFullscreen = () => setIsFullscreen(!isFullscreen);
+  useEffect(() => {
+    const onFullChange = () => {
+      const fsEl = document.fullscreenElement === containerRef.current;
+      const fs = !!fsEl;
+      setIsFullscreen(fs);
+      if (typeof onFullscreenChange === 'function') onFullscreenChange(fs);
+    };
+    document.addEventListener('fullscreenchange', onFullChange);
+    return () => document.removeEventListener('fullscreenchange', onFullChange);
+  }, []);
+
+  const toggleFullscreen = async () => {
+    try {
+      if (!document.fullscreenElement) {
+        if (containerRef.current) {
+          const el = containerRef.current as HTMLElement & { requestFullscreen?: () => Promise<void> };
+          if (el.requestFullscreen) await el.requestFullscreen();
+          setIsFullscreen(true);
+          if (typeof onFullscreenChange === 'function') onFullscreenChange(true);
+        }
+      } else {
+        if (document.exitFullscreen) await document.exitFullscreen();
+        setIsFullscreen(false);
+        if (typeof onFullscreenChange === 'function') onFullscreenChange(false);
+      }
+    } catch (e) {
+      console.error('toggleFullscreen error', e);
+    }
+  }; 
 
   useEffect(() => {
     if (imageData?.startsWith('data:image')) {
@@ -99,8 +129,14 @@ export default function TeachingPanel({ imageData }: TeachingPanelProps) {
 
   return (
     <motion.div
-      className={`rounded-xl bg-white shadow-lg overflow-hidden ${isFullscreen ? 'fixed inset-0 z-50' : 'h-full flex flex-col'}`}
-      style={{ overflow: 'hidden' }}
+      className="rounded-xl bg-white shadow-lg overflow-hidden h-full flex flex-col"
+      style={{ 
+        overflow: 'hidden', 
+        width: '100%',
+        maxWidth: '100%',
+        position: 'relative',
+        zIndex: 0
+      }}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 100 }}
@@ -118,20 +154,17 @@ export default function TeachingPanel({ imageData }: TeachingPanelProps) {
           <motion.button className="w-10 h-10 rounded-full bg-yellow-500 text-white flex items-center justify-center">
             <i className="fa-solid fa-gauge-high"></i>
           </motion.button>
-          <motion.button
-            className="w-10 h-10 rounded-full bg-blue-500 text-white flex items-center justify-center"
-            onClick={toggleFullscreen}
-          >
-            <i className={`fa-solid ${isFullscreen ? 'fa-minimize' : 'fa-maximize'}`}></i>
+          <motion.button type="button" onClick={toggleFullscreen} className="w-10 h-10 rounded-full bg-indigo-600 text-white flex items-center justify-center">
+            {isFullscreen ? <i className="fa-solid fa-compress"></i> : <i className="fa-solid fa-expand"></i>}
           </motion.button>
         </div>
-      </div>
+      </div> 
 
-      {/* 动画画布区域 */}
-      <div className={`relative ${isFullscreen ? 'h-[calc(100vh-80px)]' : 'flex-1 bg-gradient-to-b from-blue-50 to-purple-50 min-h-[300px]'}`}>
-        <div className="absolute inset-0 p-4">
+      {/* 动画画布区域 - 严格限制在列内，不跨列覆盖 */}
+      <div ref={containerRef} className="relative h-full bg-gradient-to-b from-blue-50 to-purple-50 min-h-[300px]">
+        <div className="relative w-full h-full p-4" style={{ maxWidth: '100%' }}>
           <div className="relative w-full h-full">
-            <div className="absolute inset-0 bg-white rounded-lg shadow-inner">
+            <div className="relative w-full h-full bg-white rounded-lg shadow-inner">
               <canvas
                 ref={canvasRef}
                 className="w-full h-full mx-auto block rounded shadow"
@@ -142,24 +175,22 @@ export default function TeachingPanel({ imageData }: TeachingPanelProps) {
         </div>
       </div>
 
-      {/* 角色背景（全屏隐藏） */}
-      {!isFullscreen && (
-        <div className="p-3 border-t">
-          <h4 className="text-sm font-bold mb-2 text-blue-800">角色和背景</h4>
-          <div className="flex gap-2 justify-center">
-            {[1, 2, 3].map((item) => (
-              <motion.div
-                key={item}
-                className="border border-purple-300 rounded p-1 cursor-pointer hover:shadow-sm"
-                whileHover={{ scale: 1.02 }}
-              >
-                <div className="w-10 h-10 bg-blue-100 rounded"></div>
-                <p className="text-xs text-center mt-1">角色 {item}</p>
-              </motion.div>
-            ))}
-          </div>
+      {/* 角色背景区域 */}
+      <div className="p-3 border-t">
+        <h4 className="text-sm font-bold mb-2 text-blue-800">角色和背景</h4>
+        <div className="flex gap-2 justify-center">
+          {[1, 2, 3].map((item) => (
+            <motion.div
+              key={item}
+              className="border border-purple-300 rounded p-1 cursor-pointer hover:shadow-sm"
+              whileHover={{ scale: 1.02 }}
+            >
+              <div className="w-10 h-10 bg-blue-100 rounded"></div>
+              <p className="text-xs text-center mt-1">角色 {item}</p>
+            </motion.div>
+          ))}
         </div>
-      )}
+      </div>
     </motion.div>
   );
 }

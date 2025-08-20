@@ -7,13 +7,13 @@ import Reward from '@/components/Reward';
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-indigo-800 via-purple-700 to-blue-900 font-comic" style={{ fontFamily: 'Comic Sans MS, Comic Sans, cursive' }}>
+    <div className="min-h-screen bg-gradient-to-br from-blue-600 via-indigo-600 to-purple-700 font-comic" style={{ fontFamily: 'Comic Sans MS, Comic Sans, cursive' }}>
       <Header />
-      <main className="container mx-auto px-4 py-8">
+      <main className="container mx-auto px-4 py-8 bg-black bg-opacity-20 rounded-lg">
         <Carousel />
         <Reward />
         <div className="mb-12">
-          <h2 className="mb-6 text-3xl font-bold text-white">核心功能</h2>
+          <h2 className="mb-6 text-3xl font-bold text-yellow-300">🚀 核心功能 - 热更新测试 🚀</h2>
           <FeatureCards />
         </div>
         <Showcase />

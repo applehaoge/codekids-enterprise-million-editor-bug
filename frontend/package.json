@@ -7,7 +7,7 @@
     "dev:client": "vite --port 5173",
     "dev": "node ./scripts/check-port.js && pnpm dev:client",
     "build:client": "vite build --outDir dist/static",
-    "build": "node ./scripts/build_post.js",
+    "build": "node ./scripts/build_post.cjs",
     "check-no-new-ws": "node ./frontend-scripts/check-no-new-ws.js"
   },
   "dependencies": {
@@ -38,6 +38,7 @@
     "tailwindcss": "^3.4.17",
     "typescript": "~5.7.2",
     "vite": "^6.2.0",
+    "vite-plugin-monaco-editor": "1.1.0",
     "vite-tsconfig-paths": "^5.1.4"
   },
   "packageManager": "pnpm@10.14.0+sha512.ad27a79641b49c3e481a16a805baa71817a04bbe06a38d17e60e2eaee83f6a146c6a688125f5792e48dd5ba30e7da52a5cda4c3992b9ccf333f9ce223af84748"

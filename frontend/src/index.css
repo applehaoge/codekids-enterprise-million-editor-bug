@@ -21,6 +21,16 @@ html, body {
   transform-origin: top left;
   display: flex;
   flex-direction: column;
+  background-color: #ff00ff !important; /* 荧光粉背景 - 辣眼色测试 */
+}
+
+/* Editor height chain fallback - only affects editor module */
+.editor-height-chain,
+.editor-height-chain section,
+.editor-height-chain section > div {
+  height: 100% !important;
+  min-height: 0 !important;
+  flex: 1 1 auto !important;
 }
 
 @media (max-width: 768px) {

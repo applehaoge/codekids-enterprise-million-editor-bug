@@ -1,0 +1,36 @@
+{
+  "captured": [
+    {
+      "url": "http://localhost:5173/src/api/courses.ts",
+      "status": 200,
+      "headers": {
+        "Cache-Control": "no-cache",
+        "Etag": "W/\"342-1jEMbxfJm8eL6irOIJwXPCH4/Ss\"",
+        "Connection": "keep-alive",
+        "Access-Control-Allow-Origin": "http://localhost:5173",
+        "Keep-Alive": "timeout=5",
+        "Content-Length": "3481",
+        "Date": "Mon, 18 Aug 2025 09:54:56 GMT",
+        "Content-Type": "text/javascript",
+        "Vary": "Origin"
+      },
+      "mimeType": "text/javascript"
+    },
+    {
+      "url": "http://localhost:5173/src/api/index.ts",
+      "status": 200,
+      "headers": {
+        "Cache-Control": "no-cache",
+        "Etag": "W/\"3e3-pN1tRkWmrYh8ySOeXAASVzs1qnA\"",
+        "Connection": "keep-alive",
+        "Access-Control-Allow-Origin": "http://localhost:5173",
+        "Keep-Alive": "timeout=5",
+        "Content-Length": "3422",
+        "Date": "Mon, 18 Aug 2025 09:54:56 GMT",
+        "Content-Type": "text/javascript",
+        "Vary": "Origin"
+      },
+      "mimeType": "text/javascript"
+    }
+  ]
+}

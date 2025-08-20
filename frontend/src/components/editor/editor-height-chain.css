@@ -1,0 +1,36 @@
+.editor-height-chain,
+.editor-height-chain section,
+.editor-height-chain section > div {
+  height: 100% !important;
+  min-height: 0 !important;
+  flex: 1 1 auto !important;
+  min-width: 0 !important;
+}
+
+/* 承载层：必须能吃掉剩余空间 */
+.editor-carrier {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: 100% !important;
+}
+
+/* host outer 有真实高度，链路要从 outer 向内传递 */
+.editor-host-outer {
+  display: flex !important;
+  flex-direction: column !important;
+}
+
+/* 内部宿主也允许收缩 */
+.editor-host-inner {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+}
+
+/* 提示面板不被裁剪 */
+.editor-height-chain .monaco-editor .monaco-hover,
+.editor-height-chain .monaco-editor .suggest-widget {
+  overflow: visible !important;
+}
+
+/* 隐藏调试卡片 */
+.debug-card { display: none !important; }

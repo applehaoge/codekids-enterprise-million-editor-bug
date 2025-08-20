@@ -98,17 +98,23 @@ export default function Editor() {
     >
       <Header />
       <main className="container mx-auto px-4 flex-1 pb-32">
-        <div className="flex flex-col lg:flex-row gap-4 pt-2 min-h-[calc(85vh-200px)] relative">
-          {/* 代码编辑区 */}
-          <div className={`flex flex-col min-w-0 ${isFullscreen ? 'w-full' : 'w-full lg:w-8/12'}`}>
+        {/* 使用grid布局，确保TeachingPanel不会跨列覆盖Editor */}
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 pt-2" style={{ minHeight: 'calc(100vh - 200px)' }}>
+          {/* 代码编辑区 - col-span-8，确保层级高于TeachingPanel */}
+          <div className={`lg:col-span-8 flex flex-col min-w-0 relative z-10 ${isFullscreen ? 'w-full' : ''}`}>
             <div className="mb-2">
               <MotivationPanel crystalCount={crystalCount} onCrystalAdd={handleCrystalAdd} />
             </div>
-            <div className="flex-1 min-h-[400px] relative">
+            <div className="flex-1 relative" style={{ 
+              isolation: 'isolate', 
+              zIndex: 20,
+              minHeight: '500px',
+              height: '100%'
+            }}>
               <CodeEditor
                 onToggleAITools={() => setShowAITools(!showAITools)}
                 isFullscreen={isFullscreen}
-                onToggleFullscreen={() => setIsFullscreen(!isFullscreen)}
+                onToggleFullscreen={(v) => setIsFullscreen(typeof v === 'boolean' ? v : !isFullscreen)}
                 setShowAITools={setShowAITools}
                 /* 运行结果回调 ↓ */
                 setImageData={setImageData}
@@ -119,11 +125,11 @@ export default function Editor() {
             </div>
           </div>
 
-          {/* 运行结果区 */}
+          {/* 运行结果区 - col-span-4，固定宽度，不跨列覆盖 */}
           {!isFullscreen && (
-            <div className="w-full lg:w-4/12 flex flex-col min-w-0">
+            <div className="lg:col-span-4 w-full flex flex-col min-w-0 relative z-0">
               <div className="h-full" style={{ overflow: 'hidden' }}>
-                <TeachingPanel imageData={imageData} />
+                <TeachingPanel imageData={imageData} onFullscreenChange={(fs)=>setIsFullscreen(fs)} />
               </div>
             </div>
           )}

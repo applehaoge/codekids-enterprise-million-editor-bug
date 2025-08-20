@@ -1,0 +1,6 @@
+{
+	"dependencies": {
+		"puppeteer": "^24.16.2",
+		"ws": "^8.18.3"
+	}
+}

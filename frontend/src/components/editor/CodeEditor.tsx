@@ -32,6 +32,7 @@ export default function CodeEditor({
     const savedCode = localStorage.getItem('savedCode');
     return savedCode || codeExamples[0].code;
   });
+  const containerRef = useRef<HTMLDivElement | null>(null);
 
   const [activeExample, setActiveExample] = useState(0);
   const [showSuggestions, setShowSuggestions] = useState(false);
@@ -88,9 +89,21 @@ export default function CodeEditor({
   };
 
   // ✅ 全屏切换功能
-    const toggleFullscreen = () => {
-    if (onToggleFullscreen) {
-      onToggleFullscreen();
+    const toggleFullscreen = async () => {
+    if (!onToggleFullscreen) return;
+    try {
+      if (!isFullscreen) {
+        if (containerRef.current && (containerRef.current as any).requestFullscreen) {
+          await (containerRef.current as any).requestFullscreen();
+        }
+        onToggleFullscreen(true);
+      } else {
+        if (document.exitFullscreen) await document.exitFullscreen();
+        onToggleFullscreen(false);
+      }
+    } catch (e) {
+      console.error('CodeEditor toggleFullscreen error', e);
+      onToggleFullscreen(!isFullscreen);
     }
   };
 
@@ -98,12 +111,13 @@ export default function CodeEditor({
 
   return (
     <>
-    <div className="flex flex-col gap-2 h-full relative min-h-[350px]">
+    <div className="flex flex-col gap-2 h-full relative min-h-[350px] editor-height-chain">
       <motion.div 
-        className="rounded-xl shadow-lg overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50 relative flex-1"
+        ref={containerRef}
+        className="rounded-xl shadow-lg overflow-hidden bg-gradient-to-br from-blue-50 to-purple-50 relative flex-1 editor-host-outer"
         style={{ 
           position: 'relative',
-          height: isFullscreen ? '100vh' : 'min-h-[300px]'
+          minHeight: isFullscreen ? '100vh' : '400px'
         }}
         initial={{ opacity: 0, x: -20 }}
         animate={{ opacity: 1, x: 0 }}
@@ -214,8 +228,8 @@ export default function CodeEditor({
         </div>
 
         {/* 代码编辑区 */}
-        <div className="relative flex-1" style={{ minHeight: '400px', maxHeight: isFullscreen ? 'calc(100vh - 120px)' : '600px' }}>
-          <div className="relative h-full" onClick={() => setShowSaveOptions(false)}>
+        <div className="relative flex-1" style={{ minHeight: isFullscreen ? 'calc(100vh - 120px)' : '400px' }}>
+          <div className="relative h-full editor-carrier editor-height-chain" onClick={() => setShowSaveOptions(false)}>
             <MonacoCodeEditor
               code={code}
               onChange={(newCode) => {
@@ -224,7 +238,7 @@ export default function CodeEditor({
                 localStorage.setItem('savedCode', newCode);
               }}
               language="python"
-              theme="vs-dark"
+              theme="light"
               onError={(error) => {
                 setConsoleOutput((p) => p + '\n[错误] ' + error);
               }}

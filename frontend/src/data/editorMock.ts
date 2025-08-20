@@ -86,6 +86,45 @@ export const aiInteractions = [
   }
 ];
 
+export const CHILD_HINTS: Record<string, string> = {
+  for: "循环",
+  while: "条件循环",
+  if: "如果",
+  elif: "否则如果",
+  else: "否则",
+  def: "定义函数",
+  class: "定义类",
+  return: "返回",
+  import: "导入",
+  from: "从…导入",
+  with: "使用",
+  try: "尝试",
+  except: "出错处理",
+  finally: "最后执行",
+  raise: "抛出错误",
+  assert: "断言",
+  break: "跳出循环",
+  continue: "继续下一次",
+  pass: "占位",
+  True: "真",
+  False: "假",
+  None: "空",
+  in: "在里",
+  range: "范围",
+  len: "长度",
+  print: "打印",
+  input: "输入",
+  list: "列表",
+  dict: "字典",
+  set: "集合",
+  tuple: "元组",
+  enumerate: "编号遍历",
+  open: "打开文件",
+  as: "起名为",
+  lambda: "小函数",
+  yield: "生成",
+};
+
 export const codeCompletions = [
   {
     category: "基础函数",
@@ -118,7 +157,11 @@ export const codeCompletions = [
       { keyword: "for", description: "循环结构", translation: "循环" },
       { keyword: "while", description: "条件循环", translation: "当循环" },
       { keyword: "break", description: "跳出循环", translation: "跳出" },
-      { keyword: "continue", description: "继续下一次循环", translation: "继续" }
+      { keyword: "continue", description: "继续下一次循环", translation: "继续" },
+      { keyword: "def ${1:name}(${2:args}):\n\t${3:pass}", description: "函数定义模板", translation: "函数模板", snippet: true },
+      { keyword: "for ${1:i} in range(${2:n}):\n\t${3:pass}", description: "范围循环片段", translation: "for-range", snippet: true },
+      { keyword: "for ${1:idx}, ${2:item} in enumerate(${3:iterable}):\n\t${4:pass}", description: "带索引的循环片段", translation: "for-enumerate", snippet: true },
+      { keyword: "while ${1:cond}:\n\t${2:pass}", description: "条件循环片段", translation: "while", snippet: true }
     ]
   },
   {
@@ -131,6 +174,16 @@ export const codeCompletions = [
       { keyword: ".upper()", description: "转换为大写", translation: "大写转换" },
       { keyword: ".lower()", description: "转换为小写", translation: "小写转换" },
       { keyword: ".strip()", description: "去除两端空格", translation: "去除空格" }
+    ]
+  },
+  {
+    category: "片段",
+    items: [
+      { keyword: "[${1:expr} for ${2:x} in ${3:iterable} if ${4:cond}]", description: "列表推导片段", translation: "list-comp", snippet: true },
+      { keyword: "with open(\"${1:path}\", \"r\", encoding=\"${2:utf-8}\") as f:\n\t${3:data} = f.read()", description: "打开读取文件片段", translation: "with-open-read", snippet: true },
+      { keyword: "import pygame\npygame.init()\nscreen = pygame.display.set_mode((${1:800}, ${2:600}))\npygame.display.set_caption(\"${3:Title}\")", description: "pygame 初始化片段", translation: "pygame-init", snippet: true },
+      { keyword: "if __name__ == \"__main__\":\n\t${1:main()}", description: "脚本入口检查片段", translation: "__main__", snippet: true },
+      { keyword: "class ${1:Name}(${2:object}):\n\tdef __init__(self${3:, args}):\n\t\t${4:pass}", description: "类定义模板", translation: "class", snippet: true }
     ]
   },
   {
