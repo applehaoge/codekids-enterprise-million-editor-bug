@@ -92,7 +92,7 @@ export default function MonacoCodeEditor({
 									detail: item.description,
 									documentation: item.description + (item.translation ? ' — ' + item.translation : ''),
 									filterText: makeFilterText(item, label),
-									sortText: '1_' + label,
+									sortText: '0_' + label,
 									kind: monaco.languages.CompletionItemKind.Function,
 									insertText: item.keyword,
 									range,
@@ -110,7 +110,16 @@ export default function MonacoCodeEditor({
 							}
 						}
 					}
-					return { suggestions };
+					const deduped: any[] = [];
+					const seen = new Set<string>();
+					for (const s of suggestions) {
+						const key = String(s.label);
+						if (!seen.has(key)) {
+							deduped.push(s);
+							seen.add(key);
+						}
+					}
+					return { suggestions: deduped };
 				} catch (e) {
 					console.error('completion provider error', e);
 					return { suggestions: [] };
