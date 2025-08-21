@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import Editor from '@monaco-editor/react';
 import './editor-height-chain.css';
-import { codeCompletions, CHILD_HINTS } from '@/data/editorMock';
+import { codeCompletions } from '@/data/editorMock';
 
 interface MonacoCodeEditorProps {
 	code: string;
@@ -69,43 +69,81 @@ export default function MonacoCodeEditor({
 						if (item.keyword && String(item.keyword).length > 0) parts.push(String(item.keyword)[0]);
 						return parts.join(' ').replace(/\s+/g, ' ').trim();
 					};
+					const defaultExamples: Record<string, string> = {
+					"print": "print(\"你好\")",
+					"len": "len([1,2,3])",
+					".append()": "nums = [1,2]\nnums.append(3)\nprint(nums)  # [1,2,3]",
+					"for": "for i in range(3):\n    print(i)",
+				};
+
+				const makeDocumentation = (item: any) => {
+					let exampleStr = '';
+					if (typeof item?.example === 'string' && item.example.trim().length > 0) {
+						exampleStr = item.example;
+					} else {
+						const key = String(item?.keyword || '').trim();
+						if (defaultExamples[key]) exampleStr = defaultExamples[key];
+					}
+					if (!exampleStr) return { value: "" };
+
+					// 去掉每行前导空白，避免缩进
+					const lines = exampleStr
+						.replace(/\t/g, ' ')
+						.split(/\r?\n/)
+						.map(s => s.replace(/^\s+/, ''))
+						.filter(s => s.length > 0);
+
+					// 转义行内 HTML 符号，避免被当作标签渲染
+					const escape = (s: string) =>
+						s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
+					const html = "使用示例：<br/><br/>" + lines.map(escape).join("<br/>");
+
+					// 关键：IMarkdownString，允许 HTML 换行
+					return { value: html, isTrusted: true, supportHtml: true };
+				};
+
+				const customLabels = new Set<string>();
 					for (const group of codeCompletions) {
 						for (const item of group.items) {
 							const isSnippet = item.snippet === true || item.type === 'snippet';
 							const alias = (item.translation && String(item.translation)) || String(item.keyword);
+						const label = item.translation ? `${item.translation} ${item.keyword}` : String(item.keyword);
+						customLabels.add(String(alias));
 							if (isSnippet) {
 								suggestions.push({
-									label: alias,
-									detail: item.description,
-									documentation: item.description + (item.translation ? ' — ' + item.translation : ''),
+									label: label,
+									detail: String(item.description || ""),
+									documentation: makeDocumentation(item),
 									filterText: makeFilterText(item, alias),
 									sortText: '0_' + alias,
+								preselect: true,
 									kind: monaco.languages.CompletionItemKind.Snippet,
 									insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
 									insertText: item.keyword,
 									range,
 								});
 							} else {
-								const label = String(item.keyword);
-								suggestions.push({
+									suggestions.push({
 									label,
-									detail: item.description,
-									documentation: item.description + (item.translation ? ' — ' + item.translation : ''),
-									filterText: makeFilterText(item, label),
-									sortText: '0_' + label,
+									detail: String(item.description || ""),
+									documentation: makeDocumentation(item),
+									filterText: makeFilterText(item, alias),
+									sortText: '1_' + label,
+								preselect: true,
 									kind: monaco.languages.CompletionItemKind.Function,
 									insertText: item.keyword,
 									range,
 								});
-								if (label === 'for') {
+								if (item.keyword === 'for') {
 									suggestions.push({
-										label: 'for',
-										kind: monaco.languages.CompletionItemKind.Keyword,
-										insertText: 'for ',
-										filterText: 'f for',
-										sortText: '0_for',
-										range,
-									});
+									label: 'for',
+									kind: monaco.languages.CompletionItemKind.Keyword,
+									insertText: 'for ',
+									filterText: 'f for',
+									sortText: '0_for',
+									range,
+								});
 								}
 							}
 						}
@@ -133,7 +171,7 @@ export default function MonacoCodeEditor({
 							suggestions.push({
 							label: item.keyword,
 							kind: monaco.languages.CompletionItemKind.Snippet,
-							documentation: item.description + (item.translation ? ' — ' + item.translation : ''),
+							documentation: makeDocumentation(item),
 							insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
 							insertText: item.keyword,
 							range,
@@ -142,7 +180,7 @@ export default function MonacoCodeEditor({
 							suggestions.push({
 							label: item.keyword,
 							kind: monaco.languages.CompletionItemKind.Function,
-							documentation: item.description + (item.translation ? ' — ' + item.translation : ''),
+							documentation: makeDocumentation(item),
 							insertText: item.keyword,
 							range,
 						});
@@ -154,6 +192,14 @@ export default function MonacoCodeEditor({
 			},
 		});
 		providerRef.current = provider;
+
+		// disable builtin keyword suggestions so our CN completions dominate
+		try {
+			editor.updateOptions({
+				suggest: { showKeywords: false, showSnippets: true, showWords: true },
+				wordBasedSuggestions: 'currentDocument'
+			});
+		} catch (e) { /* ignore if unsupported */ }
 
 		editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyS, () => {
 			onSave?.();
@@ -290,24 +336,18 @@ export default function MonacoCodeEditor({
 					}}
 					onMount={handleEditorDidMount}
 					options={{
-						lineNumbersMinChars: 2,
-						glyphMargin: false,
-						folding: false,
-						lineDecorationsWidth: 0,
-							lineNumbersMinChars: 2,
 						// 基本配置
 						readOnly,
 						fontSize: 16,
 						wordWrap: 'on',
 						automaticLayout: true,
-						
 						// 编辑器显示
 						minimap: { enabled: false },
 						lineNumbers: 'on',
+						lineNumbersMinChars: 2,
 						glyphMargin: true,
 						folding: true,
 						lineDecorationsWidth: 10,
-						
 						// 渲染设置
 						renderLineHighlight: 'line',
 						scrollBeyondLastLine: false,
@@ -318,7 +358,6 @@ export default function MonacoCodeEditor({
 						renderWhitespace: 'selection',
 						renderControlCharacters: true,
 						renderLineHighlightOnlyWhenFocus: false,
-						
 						// 交互功能
 						contextmenu: true,
 						quickSuggestions: { other: true, strings: true, comments: false },
