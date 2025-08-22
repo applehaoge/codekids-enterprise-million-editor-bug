@@ -42,10 +42,32 @@
   max-width: 38ch; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
 }
 
-/* 隐藏右侧详情区，避免拦截事件/撑宽（我们右侧用 makeDocumentation 展示示例） */
+/* 1) 默认让右侧 details 整块“透鼠标”，不再抢行的 hover */
 .monaco-editor .suggest-widget .details,
 .monaco-editor .suggest-widget .monaco-details,
-.monaco-editor .suggest-widget .monaco-suggest-details,
+.monaco-editor .suggest-widget .monaco-suggest-details {
+  pointer-events: none !important;
+}
+
+/* 2) 但把面板里的“箭头/按钮”单独恢复可点（常见可点击元素都兜住） */
+.monaco-editor .suggest-widget .details [role="button"],
+.monaco-editor .suggest-widget .details button,
+.monaco-editor .suggest-widget .details .monaco-action-bar,
+.monaco-editor .suggest-widget .details .actions-container,
+.monaco-editor .suggest-widget .details .codicon,
+.monaco-editor .suggest-widget .details a {
+  pointer-events: auto !important;
+}
+
+/* 3) 兜底：确保列表本体可交互 */
+.monaco-editor .suggest-widget .monaco-list,
+.monaco-editor .suggest-widget .monaco-list-rows,
+.monaco-editor .suggest-widget .monaco-list-row,
+.monaco-editor .suggest-widget .monaco-list-row * {
+  pointer-events: auto !important;
+}
+
+/* 隐藏右侧详情区，避免拦截事件/撑宽（我们右侧用 makeDocumentation 展示示例） */
 .monaco-editor .suggest-widget .explain-label {
   display: none !important; pointer-events: none !important;
 }
