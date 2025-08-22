@@ -50,6 +50,8 @@ export default function MonacoCodeEditor({
 		console.log('🚀 Monaco Editor mounted successfully');
 		console.log('Editor instance:', editor);
 		console.log('Monaco object:', monaco);
+			// 临时调试用：把编辑器实例暴露给窗口，便于控制台调用
+			;(window as any).__ed = editor;
 		
 		editorRef.current = editor;
 

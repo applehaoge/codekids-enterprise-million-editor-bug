@@ -1,0 +1,9 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git push origin main --verbose)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
