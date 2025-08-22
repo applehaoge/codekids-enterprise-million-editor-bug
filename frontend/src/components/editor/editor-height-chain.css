@@ -34,3 +34,18 @@
 
 /* 隐藏调试卡片 */
 .debug-card { display: none !important; }
+
+/* 列表文本单行省略，防止撑宽 */
+.monaco-editor .suggest-widget .monaco-list-row .monaco-icon-label,
+.monaco-editor .suggest-widget .monaco-list-row .label-name,
+.monaco-editor .suggest-widget .monaco-list-row .monaco-highlighted-label {
+  max-width: 38ch; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+
+/* 隐藏右侧详情区，避免拦截事件/撑宽（我们右侧用 makeDocumentation 展示示例） */
+.monaco-editor .suggest-widget .details,
+.monaco-editor .suggest-widget .monaco-details,
+.monaco-editor .suggest-widget .monaco-suggest-details,
+.monaco-editor .suggest-widget .explain-label {
+  display: none !important; pointer-events: none !important;
+}

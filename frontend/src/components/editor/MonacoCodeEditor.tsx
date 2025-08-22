@@ -3,6 +3,25 @@ import Editor from '@monaco-editor/react';
 import './editor-height-chain.css';
 import { codeCompletions } from '@/data/editorMock';
 
+// 初学阶段隐藏片段，后续把 false 改 true 即解锁
+const SHOW_SNIPPETS = false;
+
+// 去掉 ${1:xxx}/${2} 这类占位符
+const stripSnippetVars = (s = "") =>
+  s.replace(/\$\{\d+:?[^}]*\}/g, "").replace(/\$\d+/g, "");
+
+// 把函数参数压成 (...)
+const compressSignature = (s = "") => s.replace(/\([^)]*\)/g, "(...)");
+
+// 从 translation 或 CHILD_HINTS 兜底中文；key 用英文首词
+const getZh = (item: any, enStripped: string) => {
+  const keyForHint =
+    (item.key && String(item.key)) || (enStripped.split(/\s+/)[0] || "");
+  const zh =
+    (typeof item.translation === "string" && item.translation.trim()) || "";
+  return zh || (CHILD_HINTS?.[keyForHint] || "");
+};
+
 interface MonacoCodeEditorProps {
 	code: string;
 	onChange: (value: string) => void;
@@ -107,47 +126,30 @@ export default function MonacoCodeEditor({
 					for (const group of codeCompletions) {
 						for (const item of group.items) {
 							const isSnippet = item.snippet === true || item.type === 'snippet';
-							const alias = (item.translation && String(item.translation)) || String(item.keyword);
-						const label = item.translation ? `${item.translation} ${item.keyword}` : String(item.keyword);
-						customLabels.add(String(alias));
-							if (isSnippet) {
-								suggestions.push({
-									label: label,
-									detail: String(item.description || ""),
-									documentation: makeDocumentation(item),
-									filterText: makeFilterText(item, alias),
-									sortText: '0_' + alias,
-								preselect: true,
-									kind: monaco.languages.CompletionItemKind.Snippet,
-									insertTextRules: monaco.languages.CompletionItemInsertTextRule.InsertAsSnippet,
-									insertText: item.keyword,
-									range,
-								});
-							} else {
-									suggestions.push({
-									label,
-									detail: String(item.description || ""),
-									documentation: makeDocumentation(item),
-									filterText: makeFilterText(item, alias),
-									sortText: '1_' + label,
-								preselect: true,
-									kind: monaco.languages.CompletionItemKind.Function,
-									insertText: item.keyword,
-									range,
-								});
-								if (item.keyword === 'for') {
-									suggestions.push({
-									label: 'for',
-									kind: monaco.languages.CompletionItemKind.Keyword,
-									insertText: 'for ',
-									filterText: 'f for',
-									sortText: '0_for',
-									range,
-								});
-								}
+							if (isSnippet && !SHOW_SNIPPETS) { continue; }
+							const alias = String(item.keyword || item.key || "");
+							const enOriginal = String(item.keyword || item.label || item.key || "");
+							const enStripped = stripSnippetVars(enOriginal);
+							const zh = getZh(item, enStripped);
+							const enShort = compressSignature(enStripped).trim();
+							let label = (zh ? zh + " " : "") + enShort;
+							if (label.length > 28) label = label.slice(0, 27) + "…";
+							const shortDetail = (item.description && String(item.description).trim())
+								? (String(item.description).trim().slice(0, 26) + (String(item.description).trim().length > 26 ? "…" : ""))
+								: "";
+							customLabels.add(String(alias));
+							suggestions.push({
+								label,
+								detail: shortDetail,
+								documentation: makeDocumentation(item),
+								filterText: [zh, enStripped, alias].filter(Boolean).join(" "),
+								sortText: '1_' + enStripped,
+								kind: monaco.languages.CompletionItemKind.Function,
+								insertText: item.keyword,
+								range,
+							});
 							}
 						}
-					}
 					const deduped: any[] = [];
 					const seen = new Set<string>();
 					for (const s of suggestions) {
