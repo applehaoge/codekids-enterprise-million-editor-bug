@@ -274,6 +274,9 @@ export default function MonacoCodeEditor({
 		try { installMonacoSuggestPatches(editor, monaco); } catch (e) { console.warn('install patch failed', e); }
 
 		console.log('🎯 Editor ready for testing!');
+		try {
+			import('./monaco/suggestHitband').then(({ installSuggestHitband }) => installSuggestHitband(editor)).catch((e) => console.warn('installSuggestHitband import failed', e));
+		} catch (e) { console.warn('installSuggestHitband failed', e); }
 	};
 
 	const handleEditorChange = (value?: string) => {
@@ -487,8 +490,7 @@ function installMonacoSuggestPatches(
         if (!isArrowOrActions(target)) return;
 
         // 仅“显示”以避免松手被内置 toggle 关闭；并彻底阻断事件
-        try { editor?.trigger?.('mouse', 'showSuggestionDetails', {}); } catch {}
-        try { const c: any = getCtrl(); c?.showDetails?.(true); } catch {}
+        try { const c: any = getCtrl(); if (c?.toggleDetails) c.toggleDetails(); else c?.showDetails?.(true); } catch {}
         try { ev.preventDefault(); } catch {}
         try { ev.stopPropagation(); } catch {}
         try { (ev as any).stopImmediatePropagation?.(); } catch {}

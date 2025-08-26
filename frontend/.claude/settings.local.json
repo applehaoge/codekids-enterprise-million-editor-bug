@@ -1,0 +1,13 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git --no-pager --no-color diff --name-only --staged)",
+      "Bash(git --no-pager log --oneline -n 5)",
+      "Bash(git add frontend/src/components/editor/MonacoCodeEditor.tsx)",
+      "Bash(git add frontend/src/components/editor/editor-height-chain.css)",
+      "Bash(git add frontend/env.production)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}
