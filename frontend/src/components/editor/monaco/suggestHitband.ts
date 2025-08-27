@@ -32,6 +32,7 @@ export function installSuggestHitband(editor: any) {
           .suggest-widget .monaco-list-row.ck-idle .detail {
             white-space: normal;
             overflow: hidden;
+            text-overflow: initial;
             max-height: 8em;
           }
           .suggest-widget .monaco-list-row.ck-intent-expand .detail {
