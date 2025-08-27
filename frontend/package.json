@@ -8,7 +8,9 @@
     "dev": "node ./scripts/check-port.js && pnpm dev:client",
     "build:client": "vite build --outDir dist/static",
     "build": "node ./scripts/build_post.cjs",
-    "check-no-new-ws": "node ./frontend-scripts/check-no-new-ws.js"
+    "check-no-new-ws": "node ./frontend-scripts/check-no-new-ws.js",
+    "lint": "eslint src",
+    "typecheck": "tsc -p tsconfig.check.json --noEmit"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",
