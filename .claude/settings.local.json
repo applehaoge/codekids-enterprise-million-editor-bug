@@ -121,7 +121,16 @@
       "Bash(node ./scripts/check-port.js)",
       "Bash(pnpm dev:client)",
       "Bash(pnpm --prefix frontend -s exec eslint \"src/**/*.{ts,tsx}\" --max-warnings=0 --config .eslintrc.json)",
-      "Bash(pnpm --prefix frontend -s -w -s run -s build)"
+      "Bash(pnpm --prefix frontend -s -w -s run -s build)",
+      "Bash(git add frontend/src/components/editor/monaco/suggestHitband.ts frontend/src/components/editor/MonacoCodeEditor.tsx)",
+      "Bash(git commit -m \"feat(editor): working suggestHitband (standalone build patch)\")",
+      "Bash(pnpm -C frontend ls monaco-editor --depth 0)",
+      "Bash(pnpm -C frontend -s dlx tsc --noEmit)",
+      "Bash(pnpm -C frontend -s ls typescript)",
+      "Bash(pnpm -C frontend -s dlx tsc --version)",
+      "Bash(pnpm -C frontend -s dlx tsc --noEmit --pretty false)",
+      "Bash(pnpm --prefix frontend --silent dlx tsc --noEmit --pretty false)",
+      "Bash(pnpm -C frontend dev)"
     ],
     "defaultMode": "acceptEdits"
   }

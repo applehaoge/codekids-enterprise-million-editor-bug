@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import Editor from '@monaco-editor/react';
+import CodeEditorMonaco from './CodeEditorMonaco';
 import './editor-height-chain.css';
 import { codeCompletions } from '@/data/editorMock';
 
@@ -217,26 +217,32 @@ export default function MonacoCodeEditor({
 
 
 		try {
-			const monacoNode = containerRef.current ? containerRef.current.querySelector('.monaco-editor') : null;
-			if (monacoNode) {
-				let node = monacoNode as HTMLElement | null;
-				for (let i = 0; i < 6 && node; i++) {
-					const cls = node.className || node.tagName;
-					const offsetH = node.offsetHeight;
-					const style = window.getComputedStyle(node);
-					const computedHeight = style.height;
-					const maxHeight = style.maxHeight;
-					const flex = style.flex || style.flexGrow + '/' + style.flexShrink + '/' + style.flexBasis;
-					const overflow = style.overflow;
-					console.log(`HEIGHT_CHAIN level ${i}:`, { className: cls, offsetHeight, computedHeight, maxHeight, flex, overflow });
-					if (offsetH === 0 || computedHeight === '0px' || computedHeight === 'auto' || (maxHeight && maxHeight !== 'none' && parseFloat(maxHeight) > 0 && parseFloat(maxHeight) < 10)) {
-						console.warn('HEIGHT_CHAIN anomaly at level', i, { className: cls, offsetHeight, computedHeight, maxHeight, flex });
-						break;
-					}
-					node = node.parentElement;
-				}
+			const el = (editor as any)?.getDomNode?.();
+			const h = (el as HTMLElement | null)?.offsetHeight;
+			if (!h) {
+				console.warn('HEIGHT_CHAIN: offsetHeight not available, skip once');
 			} else {
-				console.warn('HEIGHT_CHAIN: .monaco-editor node not found inside containerRef');
+				const monacoNode = containerRef.current ? containerRef.current.querySelector('.monaco-editor') : null;
+				if (monacoNode) {
+					let node = monacoNode as HTMLElement | null;
+					for (let i = 0; i < 6 && node; i++) {
+						const cls = node.className || node.tagName;
+						const offsetH = node.offsetHeight;
+						const style = window.getComputedStyle(node);
+						const computedHeight = style.height;
+						const maxHeight = style.maxHeight;
+						const flex = style.flex || style.flexGrow + '/' + style.flexShrink + '/' + style.flexBasis;
+						const overflow = style.overflow;
+						console.log(`HEIGHT_CHAIN level ${i}:`, { className: cls, offsetHeight, computedHeight, maxHeight, flex, overflow });
+						if (offsetH === 0 || computedHeight === '0px' || computedHeight === 'auto' || (maxHeight && maxHeight !== 'none' && parseFloat(maxHeight) > 0 && parseFloat(maxHeight) < 10)) {
+							console.warn('HEIGHT_CHAIN anomaly at level', i, { className: cls, offsetHeight, computedHeight, maxHeight, flex });
+							break;
+						}
+						node = node.parentElement;
+					}
+				} else {
+					console.warn('HEIGHT_CHAIN: .monaco-editor node not found inside containerRef');
+				}
 			}
 		} catch (e) {
 			console.error('HEIGHT_CHAIN traversal error', e);
@@ -330,7 +336,7 @@ export default function MonacoCodeEditor({
 			</div>
 
 			<div className="editor-height-chain editor-host-inner" style={{height: '100%'}}>
-				<Editor
+				<CodeEditorMonaco
 					height="100%"
 					language={language}
 					theme={theme}
@@ -381,6 +387,11 @@ export default function MonacoCodeEditor({
 						colorDecorators: true,
 					}}
 				/>
+			</div>
+
+			{/* 临时测试：新版 Monaco 容器 */}
+			<div style={{ height: 300, border: "1px dashed gray", marginTop: 12 }}>
+				<CodeEditorMonaco />
 			</div>
 		</div>
 	);
