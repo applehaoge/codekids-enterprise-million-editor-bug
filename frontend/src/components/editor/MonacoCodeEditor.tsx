@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import CodeEditorMonaco from './CodeEditorMonaco';
 import './editor-height-chain.css';
 import { codeCompletions } from '@/data/editorMock';
@@ -215,60 +215,11 @@ export default function MonacoCodeEditor({
 			onChange(value);
 		});
 
-
-		try {
-			const el = (editor as any)?.getDomNode?.();
-			const h = (el as HTMLElement | null)?.offsetHeight;
-			if (!h) {
-				console.warn('HEIGHT_CHAIN: offsetHeight not available, skip once');
-			} else {
-				const monacoNode = containerRef.current ? containerRef.current.querySelector('.monaco-editor') : null;
-				if (monacoNode) {
-					let node = monacoNode as HTMLElement | null;
-					for (let i = 0; i < 6 && node; i++) {
-						const cls = node.className || node.tagName;
-						const offsetH = node.offsetHeight;
-						const style = window.getComputedStyle(node);
-						const computedHeight = style.height;
-						const maxHeight = style.maxHeight;
-						const flex = style.flex || style.flexGrow + '/' + style.flexShrink + '/' + style.flexBasis;
-						const overflow = style.overflow;
-						console.log(`HEIGHT_CHAIN level ${i}:`, { className: cls, offsetHeight, computedHeight, maxHeight, flex, overflow });
-						if (offsetH === 0 || computedHeight === '0px' || computedHeight === 'auto' || (maxHeight && maxHeight !== 'none' && parseFloat(maxHeight) > 0 && parseFloat(maxHeight) < 10)) {
-							console.warn('HEIGHT_CHAIN anomaly at level', i, { className: cls, offsetHeight, computedHeight, maxHeight, flex });
-							break;
-						}
-						node = node.parentElement;
-					}
-				} else {
-					console.warn('HEIGHT_CHAIN: .monaco-editor node not found inside containerRef');
-				}
-			}
-		} catch (e) {
-			console.error('HEIGHT_CHAIN traversal error', e);
-		}
-
-		// 强制 layout：有时容器首次不可见导致高度为 0，记录布局前后尺寸
-		try {
-			const beforeH = containerRef.current ? containerRef.current.clientHeight : null;
-			console.log('🔍 editor mount - container height before layout:', beforeH);
-			if (editor && typeof editor.layout === 'function') {
-				setTimeout(() => {
-					editor.layout();
-					const afterH = containerRef.current ? containerRef.current.clientHeight : null;
-					console.log('🔍 editor mount - container height after layout:', afterH);
-					console.log('ℹ️ Forced editor.layout() after mount');
-				}, 50);
-			}
-		} catch (e) {
-			console.error('layout error', e);
-		}
-
-		// 在编辑器被销毁时清理 provider
-		editor.onDidDispose(() => {
-			try { providerRef.current && providerRef.current.dispose && providerRef.current.dispose(); } catch (e) { /* ignore */ }
-			providerRef.current = null;
-		});
+                // 在编辑器被销毁时清理 provider
+                editor.onDidDispose(() => {
+                        try { providerRef.current && providerRef.current.dispose && providerRef.current.dispose(); } catch (e) { /* ignore */ }
+                        providerRef.current = null;
+                });
 
 		try {
 			editor.trigger && typeof editor.trigger === 'function' && editor.trigger('keyboard', 'editor.action.triggerSuggest', {});
@@ -291,45 +242,14 @@ export default function MonacoCodeEditor({
 		}
 	};
 
-	useEffect(()=>{
-		const onResize = () => {
-			if (editorRef.current && typeof editorRef.current.layout === 'function') {
-				editorRef.current.layout();
-				console.log('ℹ️ editor.layout() on window resize');
-			}
-		};
-		window.addEventListener('resize', onResize);
-
-		// ResizeObserver：监测容器尺寸变化并触发 layout
-		let ro: ResizeObserver | null = null;
-		try {
-			if (typeof ResizeObserver !== 'undefined' && containerRef.current) {
-				ro = new ResizeObserver((entries) => {
-					for (const entry of entries) {
-						const h = entry.contentRect.height;
-						console.log('🔍 ResizeObserver container height:', h);
-						if (editorRef.current && typeof editorRef.current.layout === 'function') {
-							editorRef.current.layout();
-							console.log('ℹ️ on ResizeObserver layout');
-						}
-					}
-				});
-				ro.observe(containerRef.current);
-				console.log('🔍 ResizeObserver attached to editor container');
-			}
-		} catch (e) {
-			console.error('ResizeObserver setup failed', e);
-		}
-
-		return ()=>{
-			window.removeEventListener('resize', onResize);
-			if (ro) ro.disconnect();
-		};
-	},[]);
-
-	return (
-		<div ref={containerRef} className="relative w-full h-full editor-height-chain" id="editor-container" style={{ minHeight: '400px', height: '100%', zIndex: 10 }}>
-			{/* 调试信息 */}
+        return (
+                <div
+                        ref={containerRef}
+                        className="relative w-full editor-height-chain editor-wrapper"
+                        id="editor-container"
+                        style={{ minHeight: '400px', zIndex: 10 }}
+                >
+                        {/* 调试信息 */}
 			<div className="hidden debug-card" aria-hidden="true">
 				<div>Monaco Editor - 最小化测试版本</div>
 				<div>检查控制台日志</div>
