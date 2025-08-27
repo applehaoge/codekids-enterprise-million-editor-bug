@@ -35,12 +35,16 @@
 /* 隐藏调试卡片 */
 .debug-card { display: none !important; }
 
-/* 列表文本单行省略，防止撑宽 */
-.monaco-editor .suggest-widget .monaco-list-row .monaco-icon-label,
-.monaco-editor .suggest-widget .monaco-list-row .label-name,
-.monaco-editor .suggest-widget .monaco-list-row .monaco-highlighted-label {
-  max-width: 38ch; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+/* 列表文本仅在右侧命中带触发单行省略，默认完整展示 */
+.monaco-editor .suggest-widget .monaco-list-row.show-readMore .monaco-icon-label,
+.monaco-editor .suggest-widget .monaco-list-row.show-readMore .label-name,
+.monaco-editor .suggest-widget .monaco-list-row.show-readMore .monaco-highlighted-label {
+  max-width: 38ch;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
 }
+
 
 /* 1) 默认让右侧 details 整块“透鼠标”，不再抢行的 hover */
 .monaco-editor .suggest-widget .details,
