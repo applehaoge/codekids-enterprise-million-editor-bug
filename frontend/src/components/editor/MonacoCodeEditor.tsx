@@ -215,60 +215,11 @@ export default function MonacoCodeEditor({
 			onChange(value);
 		});
 
-
-                try {
-                        const el = (editor as any)?.getDomNode?.();
-                        const h = (el as HTMLElement | null)?.offsetHeight ?? 0;
-                        if (!h) {
-                                console.warn('HEIGHT_CHAIN: offsetHeight not available, skip once');
-                        } else {
-                                const monacoNode = containerRef.current ? containerRef.current.querySelector('.monaco-editor') : null;
-                                if (monacoNode) {
-                                        let node = monacoNode as HTMLElement | null;
-                                        for (let i = 0; i < 6 && node; i++) {
-                                                const cls = node.className || node.tagName;
-                                                const offsetH = (node as HTMLElement | null)?.offsetHeight ?? 0;
-                                                const style = window.getComputedStyle(node);
-                                                const computedHeight = style.height;
-                                                const maxHeight = style.maxHeight;
-                                                const flex = style.flex || style.flexGrow + '/' + style.flexShrink + '/' + style.flexBasis;
-                                                const overflow = style.overflow;
-                                                console.log(`HEIGHT_CHAIN level ${i}:`, { className: cls, offsetHeight: offsetH, computedHeight, maxHeight, flex, overflow });
-                                                if (offsetH === 0 || computedHeight === '0px' || computedHeight === 'auto' || (maxHeight && maxHeight !== 'none' && parseFloat(maxHeight) > 0 && parseFloat(maxHeight) < 10)) {
-                                                        console.warn('HEIGHT_CHAIN anomaly at level', i, { className: cls, offsetHeight: offsetH, computedHeight, maxHeight, flex });
-                                                        break;
-                                                }
-                                                node = node.parentElement;
-                                        }
-                                } else {
-                                        console.warn('HEIGHT_CHAIN: .monaco-editor node not found inside containerRef');
-                                }
-                        }
-                } catch (e) {
-                        console.error('HEIGHT_CHAIN traversal error', e);
-                }
-
-		// 强制 layout：有时容器首次不可见导致高度为 0，记录布局前后尺寸
-		try {
-			const beforeH = containerRef.current ? containerRef.current.clientHeight : null;
-			console.log('🔍 editor mount - container height before layout:', beforeH);
-			if (editor && typeof editor.layout === 'function') {
-				setTimeout(() => {
-					editor.layout();
-					const afterH = containerRef.current ? containerRef.current.clientHeight : null;
-					console.log('🔍 editor mount - container height after layout:', afterH);
-					console.log('ℹ️ Forced editor.layout() after mount');
-				}, 50);
-			}
-		} catch (e) {
-			console.error('layout error', e);
-		}
-
-		// 在编辑器被销毁时清理 provider
-		editor.onDidDispose(() => {
-			try { providerRef.current && providerRef.current.dispose && providerRef.current.dispose(); } catch (e) { /* ignore */ }
-			providerRef.current = null;
-		});
+                // 在编辑器被销毁时清理 provider
+                editor.onDidDispose(() => {
+                        try { providerRef.current && providerRef.current.dispose && providerRef.current.dispose(); } catch (e) { /* ignore */ }
+                        providerRef.current = null;
+                });
 
 		try {
 			editor.trigger && typeof editor.trigger === 'function' && editor.trigger('keyboard', 'editor.action.triggerSuggest', {});
