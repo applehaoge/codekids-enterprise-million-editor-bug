@@ -45,16 +45,21 @@ export function installSuggestHitband(editor: any) {
       },
     ]);
 
+    const setAllRowsIdle = () => {
+      const rows = qsa<HTMLElement>('.suggest-widget.visible .monaco-list-row');
+      for (const row of rows) {
+        row.classList.add('ck-idle');
+        row.classList.remove('ck-intent-expand');
+      }
+    };
+
     // ==== 仅展示箭头的 hover 提示（不改变点击逻辑）====
     const onMouseMoveCapture = (ev: MouseEvent) => {
       if (!isSuggestVisible()) return;
       const rows = qsa<HTMLElement>('.suggest-widget.visible .monaco-list-row');
       if (!rows.length) return;
 
-      for (const row of rows) {
-        row.classList.add('ck-idle');
-        row.classList.remove('ck-intent-expand');
-      }
+      setAllRowsIdle();
 
       const listRect = rows[0].closest('.monaco-list')?.getBoundingClientRect();
       if (!listRect) return;
@@ -78,15 +83,8 @@ export function installSuggestHitband(editor: any) {
       }
     };
 
-    const onListMouseLeave = (ev: MouseEvent) => {
-      const list = document.querySelector('.suggest-widget.visible .monaco-list');
-      if (!list) return;
-      if (ev.target !== list) return;
-      const rows = qsa<HTMLElement>('.suggest-widget.visible .monaco-list-row');
-      for (const row of rows) {
-        row.classList.add('ck-idle');
-        row.classList.remove('ck-intent-expand');
-      }
+    const onListMouseLeave = () => {
+      setAllRowsIdle();
       (document.body.style as any).cursor = '';
     };
 
@@ -189,15 +187,29 @@ export function installSuggestHitband(editor: any) {
     };
 
     // ==== 监听安装 ====
-    document.addEventListener('mousemove', onMouseMoveCapture, true);
-    document.addEventListener('mouseleave', onListMouseLeave, true);
+    let boundList: HTMLElement | null = null;
+    const wireList = () => {
+      const list = document.querySelector('.suggest-widget.visible .monaco-list');
+      if (!list || list === boundList) return;
+      boundList = list as HTMLElement;
+      boundList.addEventListener('mousemove', onMouseMoveCapture, true);
+      boundList.addEventListener('mouseleave', onListMouseLeave, true);
+      setAllRowsIdle();
+    };
+
+    wireList();
+    const ctrl = editor?.getContribution?.('editor.contrib.suggestController');
+    const widget = ctrl?._widget?.value;
+    widget?.onDidShow?.(() => setTimeout(wireList, 0));
+
     document.addEventListener('mousedown', onMouseDownCapture, true);
     document.addEventListener('mousedown', onDocDownCloseSuggest, true);
 
     // ==== 卸载清理 ====
     editor?.onDidDispose?.(() => {
-      document.removeEventListener('mousemove', onMouseMoveCapture, true);
-      document.removeEventListener('mouseleave', onListMouseLeave, true);
+      boundList?.removeEventListener('mousemove', onMouseMoveCapture, true);
+      boundList?.removeEventListener('mouseleave', onListMouseLeave, true);
+      boundList = null;
       document.removeEventListener('mousedown', onMouseDownCapture, true);
       document.removeEventListener('mousedown', onDocDownCloseSuggest, true);
       (document.body.style as any).cursor = '';
