@@ -6,8 +6,8 @@ export function installSuggestHitband(editor: any) {
 
     // ==== 可调参数 ====
     const LEFT_BAND  = 100;  // 左侧命中带宽度（px）
-    const RIGHT_BAND = 100;  // 右侧命中带宽度（px）
-    const HOVER_RIGHT_BAND = RIGHT_BAND; // 仅在右侧带附近显示箭头
+    const EXPAND_ZONE = 100; // 右侧意图展开带宽度（px）
+    const RIGHT_BAND = EXPAND_ZONE; // 右侧命中带宽度（px）
     const CLICK_DEBOUNCE_MS = 500; // 防抖时间，避免展开后立即被第二次点击收回
 
     // ==== 工具函数 ====
@@ -16,28 +16,33 @@ export function installSuggestHitband(editor: any) {
 
     const isSuggestVisible = () => !!document.querySelector('.suggest-widget.visible');
 
-    function injectHitbandStyle() {
-      const id = 'hitband-style';
-      if (document.getElementById(id)) return;
-      const style = document.createElement('style');
-      style.id = id;
-      style.textContent = `
-        /* 默认隐藏箭头，避免遮挡 details 小字的 hover/点击 */
-        .suggest-widget .monaco-list-row .readMore.codicon.codicon-suggest-more-info{
-          opacity: 0;
-          pointer-events: none;
-          transition: opacity .12s ease;
-        }
-        /* 仅当行处于右侧命中带 hover 时显示并允许点击 */
-        .suggest-widget .monaco-list-row.show-readMore .readMore.codicon.codicon-suggest-more-info{
-          opacity: 1;
-          pointer-events: auto;
-        }
-      `;
-      document.head.appendChild(style);
-    }
-
-    injectHitbandStyle();
+    injectStylesOnce([
+      {
+        id: 'hitband-style',
+        css: `
+          .suggest-widget .monaco-list-row.ck-idle .readMore.codicon.codicon-suggest-more-info {
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity .12s ease;
+          }
+          .suggest-widget .monaco-list-row.ck-intent-expand .readMore.codicon.codicon-suggest-more-info {
+            opacity: 1;
+            pointer-events: auto;
+          }
+          .suggest-widget .monaco-list-row.ck-idle .detail {
+            white-space: normal;
+            overflow: hidden;
+            max-height: 8em;
+          }
+          .suggest-widget .monaco-list-row.ck-intent-expand .detail {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-height: 1.4em;
+          }
+        `,
+      },
+    ]);
 
     // ==== 仅展示箭头的 hover 提示（不改变点击逻辑）====
     const onMouseMoveCapture = (ev: MouseEvent) => {
@@ -45,28 +50,43 @@ export function installSuggestHitband(editor: any) {
       const rows = qsa<HTMLElement>('.suggest-widget.visible .monaco-list-row');
       if (!rows.length) return;
 
-      // 先清掉旧标记
-      for (const row of rows) row.classList.remove('show-readMore');
+      for (const row of rows) {
+        row.classList.add('ck-idle');
+        row.classList.remove('ck-intent-expand');
+      }
 
-      // 找到当前鼠标所在行
+      const listRect = rows[0].closest('.monaco-list')?.getBoundingClientRect();
+      if (!listRect) return;
+
+      const x = ev.clientX;
+      const inRightZone = x >= listRect.right - EXPAND_ZONE && x <= listRect.right;
+      if (!inRightZone) {
+        (document.body.style as any).cursor = '';
+        return;
+      }
+
       for (const row of rows) {
         const rowRect = row.getBoundingClientRect();
-        const listRect = row.closest('.monaco-list')?.getBoundingClientRect();
-        if (!listRect) continue;
-
         const inY = ev.clientY >= rowRect.top && ev.clientY <= rowRect.bottom;
-        if (!inY) continue;
-
-        const x = ev.clientX;
-        const nearRight = x >= (listRect.right - HOVER_RIGHT_BAND) && x <= listRect.right;
-        if (nearRight) {
-          row.classList.add('show-readMore'); // 仅右带显示箭头
+        if (inY) {
+          row.classList.remove('ck-idle');
+          row.classList.add('ck-intent-expand');
           (document.body.style as any).cursor = 'pointer';
-        } else {
-          (document.body.style as any).cursor = '';
+          break;
         }
-        break; // 命中一行后结束
       }
+    };
+
+    const onListMouseLeave = (ev: MouseEvent) => {
+      const list = document.querySelector('.suggest-widget.visible .monaco-list');
+      if (!list) return;
+      if (ev.target !== list) return;
+      const rows = qsa<HTMLElement>('.suggest-widget.visible .monaco-list-row');
+      for (const row of rows) {
+        row.classList.add('ck-idle');
+        row.classList.remove('ck-intent-expand');
+      }
+      (document.body.style as any).cursor = '';
     };
 
     // ==== 左右命中带点击：模拟点击该行的小箭头 ====
@@ -169,12 +189,14 @@ export function installSuggestHitband(editor: any) {
 
     // ==== 监听安装 ====
     document.addEventListener('mousemove', onMouseMoveCapture, true);
+    document.addEventListener('mouseleave', onListMouseLeave, true);
     document.addEventListener('mousedown', onMouseDownCapture, true);
     document.addEventListener('mousedown', onDocDownCloseSuggest, true);
 
     // ==== 卸载清理 ====
     editor?.onDidDispose?.(() => {
       document.removeEventListener('mousemove', onMouseMoveCapture, true);
+      document.removeEventListener('mouseleave', onListMouseLeave, true);
       document.removeEventListener('mousedown', onMouseDownCapture, true);
       document.removeEventListener('mousedown', onDocDownCloseSuggest, true);
       (document.body.style as any).cursor = '';
@@ -184,4 +206,14 @@ export function installSuggestHitband(editor: any) {
   } catch (e) {
     console.warn('installSuggestHitband failed', e);
   }
+}
+
+function injectStylesOnce(items: Array<{ id: string; css: string }>) {
+  items.forEach(({ id, css }) => {
+    if (document.getElementById(id)) return;
+    const style = document.createElement('style');
+    style.id = id;
+    style.textContent = css;
+    document.documentElement.appendChild(style);
+  });
 }
