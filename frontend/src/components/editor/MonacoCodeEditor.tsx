@@ -1,4 +1,4 @@
-import React, { useRef, useEffect } from 'react';
+import React, { useRef } from 'react';
 import CodeEditorMonaco from './CodeEditorMonaco';
 import './editor-height-chain.css';
 import { codeCompletions } from '@/data/editorMock';
@@ -291,45 +291,14 @@ export default function MonacoCodeEditor({
 		}
 	};
 
-	useEffect(()=>{
-		const onResize = () => {
-			if (editorRef.current && typeof editorRef.current.layout === 'function') {
-				editorRef.current.layout();
-				console.log('ℹ️ editor.layout() on window resize');
-			}
-		};
-		window.addEventListener('resize', onResize);
-
-		// ResizeObserver：监测容器尺寸变化并触发 layout
-		let ro: ResizeObserver | null = null;
-		try {
-			if (typeof ResizeObserver !== 'undefined' && containerRef.current) {
-				ro = new ResizeObserver((entries) => {
-					for (const entry of entries) {
-						const h = entry.contentRect.height;
-						console.log('🔍 ResizeObserver container height:', h);
-						if (editorRef.current && typeof editorRef.current.layout === 'function') {
-							editorRef.current.layout();
-							console.log('ℹ️ on ResizeObserver layout');
-						}
-					}
-				});
-				ro.observe(containerRef.current);
-				console.log('🔍 ResizeObserver attached to editor container');
-			}
-		} catch (e) {
-			console.error('ResizeObserver setup failed', e);
-		}
-
-		return ()=>{
-			window.removeEventListener('resize', onResize);
-			if (ro) ro.disconnect();
-		};
-	},[]);
-
-	return (
-		<div ref={containerRef} className="relative w-full h-full editor-height-chain" id="editor-container" style={{ minHeight: '400px', height: '100%', zIndex: 10 }}>
-			{/* 调试信息 */}
+        return (
+                <div
+                        ref={containerRef}
+                        className="relative w-full editor-height-chain editor-wrapper"
+                        id="editor-container"
+                        style={{ minHeight: '400px', zIndex: 10 }}
+                >
+                        {/* 调试信息 */}
 			<div className="hidden debug-card" aria-hidden="true">
 				<div>Monaco Editor - 最小化测试版本</div>
 				<div>检查控制台日志</div>

@@ -7,6 +7,12 @@
   min-width: 0 !important;
 }
 
+/* 限制编辑器容器高度，避免无限撑开 */
+.editor-wrapper {
+  height: 100vh;
+  max-height: 100vh;
+}
+
 /* 承载层：必须能吃掉剩余空间 */
 .editor-carrier {
   flex: 1 1 auto !important;
