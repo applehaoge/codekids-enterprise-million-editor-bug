@@ -43,7 +43,51 @@ export function installSuggestHitband(editor: any) {
           }
         `,
       },
+      {
+        id: 'ck-suggest-hud-style',
+        css: `
+          #ck-suggest-hud {
+            position: fixed;
+            top: 4px;
+            right: 4px;
+            background: rgba(0, 0, 0, 0.6);
+            color: #fff;
+            font-size: 12px;
+            padding: 2px 4px;
+            white-space: pre;
+            pointer-events: none;
+            z-index: 10000;
+          }
+        `,
+      },
     ]);
+
+    const HUD_ID = 'ck-suggest-hud';
+    const ensureHud = () => {
+      let hud = document.getElementById(HUD_ID) as HTMLElement | null;
+      if (!hud) {
+        hud = document.createElement('div');
+        hud.id = HUD_ID;
+        document.body.appendChild(hud);
+      }
+      return hud;
+    };
+
+    const hud = ensureHud();
+    const updateHud = () => {
+      const widget = document.querySelector('.suggest-widget') as HTMLElement | null;
+      const detail = widget?.querySelector('.detail') as HTMLElement | null;
+      if (widget && isSuggestVisible()) {
+        const st = detail ? window.getComputedStyle(detail) : null;
+        hud.style.display = 'block';
+        hud.textContent = `.suggest-widget: ${widget.className}\n` +
+          `detail ws:${st?.whiteSpace} ov:${st?.overflow} to:${st?.textOverflow}`;
+      } else {
+        hud.style.display = 'none';
+      }
+      requestAnimationFrame(updateHud);
+    };
+    updateHud();
 
     const setAllRowsIdle = () => {
       const rows = qsa<HTMLElement>('.suggest-widget.visible .monaco-list-row');
@@ -176,12 +220,12 @@ export function installSuggestHitband(editor: any) {
 
       const target = ev.target as Node | null;
       const insideWidget = !!(target && widget.contains(target));
-      if (insideWidget) return; // 点补全内：不处理
+      if (insideWidget) return;
 
-      // 让当前点击先完成（例如移动光标），下一帧发送 ESC 关闭补全
       setTimeout(() => {
         try {
-          editor?.trigger?.('keyboard', 'escape', {});
+          const ctrl = editor?.getContribution?.('editor.contrib.suggestController');
+          ctrl?.cancel?.();
         } catch {}
       }, 0);
     };
